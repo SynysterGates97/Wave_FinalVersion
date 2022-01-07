@@ -26,12 +26,15 @@
 #include "usbh_msc.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "ff.h"
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+extern uint8_t retUSBH;    /* Return value for USBH */
+extern char USBHPath[4];   /* USBH logical drive path */
+extern FATFS USBHFatFS;    /* File system object for USBH logical drive */
+extern FIL USBHFile;       /* File object for USBH */
 /* USER CODE END PV */
 
 /* USER CODE BEGIN PFP */
@@ -106,11 +109,16 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
   break;
 
   case HOST_USER_CLASS_ACTIVE:
-  Appli_state = APPLICATION_READY;
+  {
+	  FRESULT result = f_mount(&USBHFatFS, USBHPath, 1);
+	  Appli_state = APPLICATION_READY;
+  }
   break;
 
   case HOST_USER_CONNECTION:
-  Appli_state = APPLICATION_START;
+	  {
+		  Appli_state = APPLICATION_START;
+	  }
   break;
 
   default:

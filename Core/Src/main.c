@@ -22,7 +22,6 @@
 #include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_host.h"
-#include "usb_host.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -36,6 +35,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+extern ApplicationTypeDef Appli_state;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -64,7 +64,33 @@ void StartAudioTask(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static void GetFileList(void)
+{
+   FRESULT result;                                                               /* FatFs function common result code */
+   /* File read buffer */
 
+   DIR dir;
+//   nFiles = 0;
+   static FILINFO fileInfo;
+
+
+   result = f_opendir(&dir, "/");
+
+   if (result == FR_OK)//FR_NOT_ENABLED
+   {
+      result = f_readdir(&dir, &fileInfo);//??? ???? ????? ? ????? ???????? system volume
+      while (((result = f_readdir(&dir, &fileInfo)) == FR_OK) && fileInfo.fname[0])
+      {
+//         if(strstr(fileInfo.fname,".wav"))
+//         {
+//           FilNam[nFiles] =  ff_malloc(strlen(fileInfo.fname));
+//           strncpy(FilNam[nFiles], fileInfo.fname, (strlen(fileInfo.fname)));
+//           nFiles++;
+//         }
+      }
+   }
+   f_closedir(&dir);
+}
 /* USER CODE END 0 */
 
 /**
@@ -236,6 +262,10 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	  if(Appli_state == APPLICATION_READY)
+	  {
+		  GetFileList();
+	  }
     osDelay(1);
   }
   /* USER CODE END 5 */
