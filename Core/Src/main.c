@@ -262,10 +262,6 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  if(Appli_state == APPLICATION_READY)
-	  {
-		  GetFileList();
-	  }
     osDelay(1);
   }
   /* USER CODE END 5 */
@@ -303,6 +299,10 @@ void StartAudioTask(void const * argument)
   for(;;)
   {
     osDelay(1);
+    if(Appli_state == APPLICATION_READY)
+	  {
+		  GetFileList();
+	  }
   }
   /* USER CODE END StartAudioTask */
 }
