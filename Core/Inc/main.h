@@ -60,6 +60,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define Down_Pin GPIO_PIN_1
+#define Down_GPIO_Port GPIOC
+#define Up_Pin GPIO_PIN_2
+#define Up_GPIO_Port GPIOC
+#define Play_Pin GPIO_PIN_3
+#define Play_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
