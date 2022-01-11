@@ -565,6 +565,13 @@ void StartLedTask(void const * argument)
 void StartAudioTask(void const * argument)
 {
   /* USER CODE BEGIN StartAudioTask */
+	HAL_TIM_Base_Start(&htim2);
+
+	LCD_ini();
+	LCD_Clear();
+
+	LCD_SetPos(0, 0);
+	LCD_String("Mark V");
   /* Infinite loop */
   for(;;)
   {
