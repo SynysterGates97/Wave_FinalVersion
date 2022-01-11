@@ -56,7 +56,7 @@ extern volatile int playing_changed;
 #define  CS43L22_ID            0xE0
 #define  CS43L22_ID_MASK       0xF8
 
-#define AUDIO_BUFFER_SIZE             0x10000
+#define AUDIO_BUFFER_SIZE             0x8000
 #define DMA_MAX_SZE                     0xFFFF
 
 #define DMA_MAX(_X_)                (((_X_) <= DMA_MAX_SZE)? (_X_):DMA_MAX_SZE)
