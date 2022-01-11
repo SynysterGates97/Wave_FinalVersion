@@ -43,6 +43,14 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
+volatile int menuState = 0;
+volatile int menuUp = 0;
+volatile int menuDown = 0;
+volatile int menuPlay = 0;
+volatile int menuIndex = 0;
+
+volatile int nFiles = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -162,6 +170,74 @@ void DebugMon_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles EXTI line1 interrupt.
+  */
+void EXTI1_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI1_IRQn 0 */
+	HAL_Delay(5);
+	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_1)== 1)
+	{
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+		if(menuIndex != nFiles - 1)
+		{
+			menuIndex++;
+			menuDown = 1;
+			menuState = 1;
+		}
+	}
+  /* USER CODE END EXTI1_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+  /* USER CODE BEGIN EXTI1_IRQn 1 */
+
+  /* USER CODE END EXTI1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line2 interrupt.
+  */
+void EXTI2_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI2_IRQn 0 */
+	HAL_Delay(5);
+	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_2)== 1)
+	{
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+		if(menuIndex != 0)
+		{
+			menuIndex--;
+			menuUp = 1;
+			menuState = 1;
+		}
+	}
+  /* USER CODE END EXTI2_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
+  /* USER CODE BEGIN EXTI2_IRQn 1 */
+
+  /* USER CODE END EXTI2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line3 interrupt.
+  */
+void EXTI3_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI3_IRQn 0 */
+	HAL_Delay(5);
+	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_3)== 1)
+	{
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+		menuPlay ^= 1;
+		menuState = 1;
+	}
+  /* USER CODE END EXTI3_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+  /* USER CODE BEGIN EXTI3_IRQn 1 */
+
+  /* USER CODE END EXTI3_IRQn 1 */
+}
 
 /**
   * @brief This function handles DMA1 stream5 global interrupt.

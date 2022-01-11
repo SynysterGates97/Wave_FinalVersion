@@ -62,10 +62,13 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define Down_Pin GPIO_PIN_1
 #define Down_GPIO_Port GPIOC
+#define Down_EXTI_IRQn EXTI1_IRQn
 #define Up_Pin GPIO_PIN_2
 #define Up_GPIO_Port GPIOC
+#define Up_EXTI_IRQn EXTI2_IRQn
 #define Play_Pin GPIO_PIN_3
 #define Play_GPIO_Port GPIOC
+#define Play_EXTI_IRQn EXTI3_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

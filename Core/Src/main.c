@@ -59,7 +59,13 @@ osThreadId defaultTaskHandle;
 osThreadId ledTaskHandle;
 osThreadId audioTaskHandle;
 /* USER CODE BEGIN PV */
+extern volatile int menuState;
+extern volatile int menuDown;
+extern volatile int menuUp;
+extern volatile int menuPlay;
+extern volatile int menuIndex;
 
+extern volatile int playing_changed;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -511,6 +517,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
@@ -572,14 +588,23 @@ void StartAudioTask(void const * argument)
 
 	LCD_SetPos(0, 0);
 	LCD_String("Mark V");
+	HAL_Delay(2000);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
-    if(Appli_state == APPLICATION_READY)
-	  {
-		  GetFileList();
-	  }
+
+//	if(Appli_state == APPLICATION_READY)
+//	{
+//		GetFileList();
+//	}
+	char str[17];
+	sprintf(str,"u:%d|d:%d|i=%d|s:%d",menuUp,menuDown,menuIndex,menuState);
+
+	LCD_Clear();
+	LCD_SetPos(0, 0);
+	LCD_String(str);
+
+	osDelay(100);
   }
   /* USER CODE END StartAudioTask */
 }
