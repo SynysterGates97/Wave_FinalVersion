@@ -28,6 +28,7 @@
 /* USER CODE BEGIN Includes */
 #include "lcd.h"
 #include "stdio.h"
+#include "audioplay.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,6 +83,7 @@ void StartLedTask(void const * argument);
 void StartAudioTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
+
 
 /* USER CODE END PFP */
 
@@ -544,6 +546,7 @@ void StartDefaultTask(void const * argument)
 {
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
+
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
