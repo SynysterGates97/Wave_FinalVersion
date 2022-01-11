@@ -28,7 +28,9 @@
 /* USER CODE BEGIN Includes */
 #include "lcd.h"
 #include "stdio.h"
+#include "stdbool.h"
 #include "audioplay.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,8 +67,46 @@ extern volatile int menuDown;
 extern volatile int menuUp;
 extern volatile int menuPlay;
 extern volatile int menuIndex;
+extern volatile int nFiles;
 
-extern volatile int playing_changed;
+volatile int playing_changed;
+
+extern uint8_t retUSBH;    /* Return value for USBH */
+extern char USBHPath[4];   /* USBH logical drive path */
+extern FATFS USBHFatFS;    /* File system object for USBH logical drive */
+extern FIL USBHFile;       /* File object for USBH */
+
+uint8_t usb_ok = 0;
+bool test_readyToPlay = false;
+
+FIL MyFile;                   /* File object */
+FIL ConFile;
+FIL WavFile;
+
+char *FilNam[20];
+
+extern USBH_HandleTypeDef hUsbHostFS;
+
+
+extern volatile AUDIO_StateMachine     Audio;
+WAVE_FormatTypeDef *waveformat =  NULL;
+uint32_t WaveDataLength = 0;
+char str[100];
+char FileName[100]={0};
+uint8_t info[44];
+
+uint8_t index_inplay = -1;
+
+uint8_t playing_now=0;
+uint8_t flag_opt =0;//flag showing that the current option now is playing.
+uint8_t switch_opt = 0;//?????? ????? ????. ???.
+uint8_t flag_stop_light = 0;
+
+volatile uint16_t BPM=0;
+volatile uint16_t Nature=255;
+volatile uint16_t Dynamic=0;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -115,6 +155,41 @@ static void GetFileList(void)
       }
    }
    f_closedir(&dir);
+}
+
+void MenuProcess(void)
+{
+	switch (Audio.state)
+	{
+		case AUDIO_IDLE:
+			Audio.state = AUDIO_WAIT;
+			break;
+		case AUDIO_WAIT:
+			LCD_SetPos(0, 0);
+			f_close(&WavFile);
+//			GetFileInfo(); TODO: BACK
+			AudioPlay_Init(waveformat->SampleRate);
+			Audio.state = AUDIO_PLAYBACK;
+			break;
+		case AUDIO_EXPLORE:
+			break;
+		case AUDIO_PLAYBACK:
+			WaveDataLength = waveformat->FileSize;
+			if (f_open(&WavFile, FileName, FA_OPEN_EXISTING | FA_READ) == FR_OK) {
+				AudioPlay_Start(waveformat->SampleRate);
+				f_close(&WavFile);
+			}
+			LCD_Clear();
+			sprintf(FileName, FilNam[menuIndex]);
+			Audio.state = AUDIO_IDLE;
+			menuPlay = 1; ///////////////////////////////////////////play is always 1
+			// state = 1;
+			break;
+		case AUDIO_IN:
+			break;
+		default:
+			break;
+	}
 }
 /* USER CODE END 0 */
 
@@ -596,18 +671,26 @@ void StartAudioTask(void const * argument)
   for(;;)
   {
 
-//	if(Appli_state == APPLICATION_READY)
-//	{
-//		GetFileList();
-//	}
-	char str[17];
-	sprintf(str,"u:%d|d:%d|i=%d|s:%d",menuUp,menuDown,menuIndex,menuState);
+		if (Appli_state == APPLICATION_READY && !usb_ok)
+		{
+			GetFileList();
+			usb_ok = TRUE;
+		}
 
-	LCD_Clear();
-	LCD_SetPos(0, 0);
-	LCD_String(str);
+		if (usb_ok == TRUE)
+		{
+			MenuProcess();
+		}
 
-	osDelay(100);
+//		char str[17];
+//		sprintf(str, "u:%d|d:%d|i=%d|s:%d", menuUp, menuDown, menuIndex,
+//				menuState);
+//
+//		LCD_Clear();
+//		LCD_SetPos(0, 0);
+//		LCD_String(str);
+
+		osDelay(1);
   }
   /* USER CODE END StartAudioTask */
 }
