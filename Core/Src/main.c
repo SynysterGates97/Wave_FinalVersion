@@ -157,6 +157,25 @@ static void GetFileList(void)
    f_closedir(&dir);
 }
 
+void GetFileInfo(void)
+{
+   LCD_Clear();
+   if(f_open(&WavFile,"23.wav", FA_OPEN_EXISTING | FA_READ)==FR_OK)
+   {
+      uint32_t duration;
+      uint32_t bytesread;
+      if(f_read(&WavFile, info, 44, (void*)&bytesread)==FR_OK)
+      {
+         waveformat=(WAVE_FormatTypeDef*)info;
+         sprintf((char*)str, "%d", (int)(waveformat->SampleRate));
+         sprintf((char*)str, " %d", (int)(waveformat->NbrChannels));
+         duration = waveformat->FileSize / waveformat->ByteRate;
+         sprintf((char*)str, " %d %02d:%02d", (int)(waveformat->FileSize/1024),
+                 (int)duration/60, (int)duration%60);
+      }
+      f_close(&WavFile);
+   }
+}
 void MenuProcess(void)
 {
 	switch (Audio.state)
@@ -167,7 +186,7 @@ void MenuProcess(void)
 		case AUDIO_WAIT:
 			LCD_SetPos(0, 0);
 			f_close(&WavFile);
-//			GetFileInfo(); TODO: BACK
+			GetFileInfo(); // TODO: BACK
 			AudioPlay_Init(waveformat->SampleRate);
 			Audio.state = AUDIO_PLAYBACK;
 			break;
@@ -175,11 +194,12 @@ void MenuProcess(void)
 			break;
 		case AUDIO_PLAYBACK:
 			WaveDataLength = waveformat->FileSize;
-			if (f_open(&WavFile, FileName, FA_OPEN_EXISTING | FA_READ) == FR_OK) {
+			// TODO: FileName - нужно заменить на File
+			if (f_open(&WavFile, "23.wav", FA_OPEN_EXISTING | FA_READ) == FR_OK) {
 				AudioPlay_Start(waveformat->SampleRate);
 				f_close(&WavFile);
 			}
-			LCD_Clear();
+			//LCD_Clear();
 			sprintf(FileName, FilNam[menuIndex]);
 			Audio.state = AUDIO_IDLE;
 			menuPlay = 1; ///////////////////////////////////////////play is always 1
