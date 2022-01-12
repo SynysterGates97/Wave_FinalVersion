@@ -188,6 +188,12 @@ void MenuProcess(void)
 			f_close(&WavFile);
 			GetFileInfo(); // TODO: BACK
 			AudioPlay_Init(waveformat->SampleRate);
+			WaveDataLength = waveformat->FileSize;
+			// TODO: FileName - нужно заменить на File
+			if (f_open(&WavFile, "23.wav", FA_OPEN_EXISTING | FA_READ) == FR_OK) {
+				AudioPlay_Start(waveformat->SampleRate);
+				f_close(&WavFile);
+			}
 			Audio.state = AUDIO_PLAYBACK;
 			break;
 		case AUDIO_EXPLORE:
@@ -634,7 +640,21 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s3)
+{
+	if(hi2s3->Instance==I2S3)
+	{
+		AudioPlay_HalfTransfer_Callback();
+	}
+}
 
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s3)
+{
+	if(hi2s3->Instance==I2S3)
+	{
+		AudioPlay_Transfer_Callback();
+	}
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */

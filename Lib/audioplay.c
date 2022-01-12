@@ -13,7 +13,7 @@
 #define AUDIO_TIMEOUT                   2
 
 /* Position in the audio play buffer */
-__IO BUFFER_StateTypeDef buffer_offset = BUFFER_OFFSET_NONE;
+volatile BUFFER_StateTypeDef buffer_offset = BUFFER_OFFSET_NONE;
 
 /* Codec output DEVICE */
 #define OUTPUT_DEVICE_SPEAKER         1
