@@ -8,7 +8,7 @@ extern I2C_HandleTypeDef hi2c3;
 char str1[100];
 uint8_t portlcd; //¤чейка дл¤ хранени¤ данных порта микросхемы расширени¤
 //------------------------------------------------
-__STATIC_INLINE void DelayMicro(volatile uint32_t micros)
+void DelayMicro(volatile uint32_t micros)
 {
 	__HAL_TIM_SET_COUNTER(&htim2,0);
 	while(__HAL_TIM_GET_COUNTER(&htim2) < micros);

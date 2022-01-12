@@ -102,10 +102,6 @@ uint8_t flag_opt =0;//flag showing that the current option now is playing.
 uint8_t switch_opt = 0;//?????? ????? ????. ???.
 uint8_t flag_stop_light = 0;
 
-volatile uint16_t BPM=0;
-volatile uint16_t Nature=255;
-volatile uint16_t Dynamic=0;
-
 
 /* USER CODE END PV */
 
@@ -217,6 +213,116 @@ void MenuProcess(void)
 			break;
 	}
 }
+
+#define RED    TIM3->CCR3
+#define GREEN    TIM3->CCR2
+#define BLUE    TIM3->CCR1
+
+#define TOP    65536
+
+volatile uint16_t BPM=120;
+volatile uint16_t Nature=255;
+volatile uint16_t Dynamic=0;
+
+uint32_t option1()
+{
+	flag_stop_light = 0;
+	uint32_t i = TOP / 16, j = TOP / 16;
+	uint32_t bpm = 2500 / BPM / 2;
+	///////Розовый
+	while (i < TOP) {
+		RED = i;
+		BLUE = i / 3;
+		i++;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	// i=TOP/16;
+	while (i > TOP / 16 + 1) {
+		RED = i;
+		BLUE = i / 3;
+		i--;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	BLUE = 0;
+	///////оранжевый
+	while (i < TOP) {
+		RED = i;
+		GREEN = i / 7;
+		i++;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	while (i > TOP / 16 + 1) {
+		RED = i;
+		GREEN = i / 7;
+		i--;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	///////желтый
+	while (i < TOP) {
+		RED = i;
+		GREEN = i / 3;
+		i++;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	while (i > TOP / 16 + 1) {
+		RED = i;
+		GREEN = i / 3;
+		i--;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	RED = 0;
+	///////Зеленый
+	while (i < TOP) {
+		GREEN = i;
+		i++;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	while (i > TOP / 16 + 1) {
+		GREEN = i;
+		i--;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	GREEN = 0;
+	///////голубой
+	while (i < TOP) {
+		BLUE = i;
+		i++;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	while (i > TOP / 16 + 1) {
+		BLUE = i;
+		i--;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	BLUE = 0;
+	///////КОРпЧНЕВЫЙ???
+
+	while (i < TOP) {
+		GREEN = i / 2;
+		RED = i;
+		i++;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+	while (i > TOP / 16 + 1) {
+		GREEN = i / 2;
+		RED = i;
+		i--;
+		DelayMicro(bpm);
+	}
+//	CHECK_RESET_LED;
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -280,11 +386,11 @@ int main(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of ledTask */
-  osThreadDef(ledTask, StartLedTask, osPriorityIdle, 0, 128);
+  osThreadDef(ledTask, StartLedTask, osPriorityIdle, 0, 256);
   ledTaskHandle = osThreadCreate(osThread(ledTask), NULL);
 
   /* definition and creation of audioTask */
-  osThreadDef(audioTask, StartAudioTask, osPriorityIdle, 0, 128);
+  osThreadDef(audioTask, StartAudioTask, osPriorityLow, 0, 512);
   audioTaskHandle = osThreadCreate(osThread(audioTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -690,7 +796,11 @@ void StartLedTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  if(usb_ok)
+	  {
+		  option1();
+	  }
+	  osDelay(1);
   }
   /* USER CODE END StartLedTask */
 }
