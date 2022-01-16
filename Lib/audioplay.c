@@ -309,7 +309,7 @@ uint8_t AudioOut_Init(uint16_t OutputDevice, uint8_t Volume, uint32_t AudioFreq)
 void AudioPlay_Init(uint32_t AudioFreq)
 {
    samplerate = AudioFreq;
-   __IO uint8_t volume=90;
+   __IO uint8_t volume=80;
    if(AudioOut_Init(OUTPUT_DEVICE_AUTO, volume, samplerate)!=0)
    {
       Error();

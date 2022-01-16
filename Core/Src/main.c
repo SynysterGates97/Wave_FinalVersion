@@ -22,7 +22,6 @@
 #include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_host.h"
-#include "usb_host.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -125,6 +124,14 @@ void StartAudioTask(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
+{
+	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+   /* Run time stack overflow checking is performed if
+   configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+   called if a stack overflow is detected. */
+}
 static void GetFileList(void)
 {
    FRESULT result;                                                               /* FatFs function common result code */
@@ -185,11 +192,6 @@ void MenuProcess(void)
 			GetFileInfo(); // TODO: BACK
 			AudioPlay_Init(waveformat->SampleRate);
 			WaveDataLength = waveformat->FileSize;
-			// TODO: FileName - нужно заменить на File
-			if (f_open(&WavFile, "23.wav", FA_OPEN_EXISTING | FA_READ) == FR_OK) {
-				AudioPlay_Start(waveformat->SampleRate);
-				f_close(&WavFile);
-			}
 			Audio.state = AUDIO_PLAYBACK;
 			break;
 		case AUDIO_EXPLORE:
@@ -898,4 +900,3 @@ void assert_failed(uint8_t *file, uint32_t line)
 }
 #endif /* USE_FULL_ASSERT */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
