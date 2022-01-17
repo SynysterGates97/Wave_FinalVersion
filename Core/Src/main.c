@@ -388,11 +388,11 @@ int main(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of ledTask */
-  osThreadDef(ledTask, StartLedTask, osPriorityLow, 0, 256);
+  osThreadDef(ledTask, StartLedTask, osPriorityBelowNormal, 0, 256);
   ledTaskHandle = osThreadCreate(osThread(ledTask), NULL);
 
   /* definition and creation of audioTask */
-  osThreadDef(audioTask, StartAudioTask, osPriorityLow, 0, 512);
+  osThreadDef(audioTask, StartAudioTask, osPriorityBelowNormal, 0, 512);
   audioTaskHandle = osThreadCreate(osThread(audioTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
