@@ -54,6 +54,8 @@ I2C_HandleTypeDef hi2c3;
 I2S_HandleTypeDef hi2s3;
 DMA_HandleTypeDef hdma_spi3_tx;
 
+RNG_HandleTypeDef hrng;
+
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
@@ -113,6 +115,7 @@ static void MX_DMA_Init(void);
 static void MX_I2S3_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_RNG_Init(void);
 void StartDefaultTask(void const * argument);
 void StartLedTask(void const * argument);
 void StartAudioTask(void const * argument);
@@ -362,6 +365,7 @@ int main(void)
   MX_I2S3_Init();
   MX_I2C3_Init();
   MX_TIM2_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -556,6 +560,32 @@ static void MX_I2S3_Init(void)
   /* USER CODE BEGIN I2S3_Init 2 */
 
   /* USER CODE END I2S3_Init 2 */
+
+}
+
+/**
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RNG_Init(void)
+{
+
+  /* USER CODE BEGIN RNG_Init 0 */
+
+  /* USER CODE END RNG_Init 0 */
+
+  /* USER CODE BEGIN RNG_Init 1 */
+
+  /* USER CODE END RNG_Init 1 */
+  hrng.Instance = RNG;
+  if (HAL_RNG_Init(&hrng) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RNG_Init 2 */
+
+  /* USER CODE END RNG_Init 2 */
 
 }
 
@@ -794,9 +824,11 @@ void StartLedTask(void const * argument)
   {
 	  if(usb_ok)
 	  {
-		  option1();
+		  uint32_t random = HAL_RNG_GetRandomNumber(&hrng);
+		  osDelay(1);
+//		  option1();
 	  }
-	  osDelay(1);
+	  osDelay(100);
   }
   /* USER CODE END StartLedTask */
 }
