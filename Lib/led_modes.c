@@ -5,34 +5,35 @@
 // SMA - simple moving average
 #define SMA_COUNTS 100
 
-static uint16_t smaSamples[SMA_COUNTS];
+static uint16_t smaQueue[SMA_COUNTS];
 
-static uint8_t lastElementInSamples = 0;
-static uint8_t firstElementInSamples= 0;
-
-static uint16_t smaElementsInSumCount = 0;
+static uint8_t smaQueueEnqueIndex = 0;
+static uint16_t smaQueueElementsCount = 0;
 
 // Используется строго для вызова для одних целей.
 // Пока не вижу необходимости вычисления скользящего среднего для других целей,
 // кроме эмуляции огня.
 uint16_t sma_get_average_value(uint16_t value)
 {
-	if (lastElementInSamples == firstElementInSamples &&
-			firstElementInSamples == 0)
+	smaQueue[smaQueueEnqueIndex] = value;
+	smaQueueEnqueIndex++;
+
+	if (smaQueueEnqueIndex > SMA_COUNTS - 1)
 	{
-		smaSamples[firstElementInSamples] = value;
+		smaQueueEnqueIndex = smaQueueEnqueIndex - SMA_COUNTS;
 	}
-	else if(lastElementInSamples > firstElementInSamples)
+	else
 	{
-
+		smaQueueElementsCount++;
 	}
 
-	if (smaElementsInSumCount > SMA_COUNTS)
+	uint16_t sumOfElements = 0;
+	for (int i = 0; i < smaQueueElementsCount; ++i)
 	{
-
+		sumOfElements += smaQueue[i];
 	}
 
 	// return sma_samples_sum()/smaElementsInSumCount
-	return 0;
+	return sumOfElements / smaQueueElementsCount;
 
 }

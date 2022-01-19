@@ -822,9 +822,19 @@ void StartLedTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  if(usb_ok)
+	  if(true)
 	  {
-		  uint32_t random = HAL_RNG_GetRandomNumber(&hrng);
+		  uint16_t random = HAL_RNG_GetRandomNumber(&hrng);
+
+		  for (int i = 0; i < 256; ++i)
+		  {
+			  uint16_t randomSmaed = sma_get_average_value(i);
+			  if (i >= 100)
+			  {
+				  randomSmaed = 0;
+			  }
+		  }
+
 		  osDelay(1);
 //		  option1();
 	  }
