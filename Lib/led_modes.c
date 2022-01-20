@@ -3,7 +3,7 @@
 // Количество точек по которым будет браться среднее для алгоримтма
 // простого скользящего среднего.
 // SMA - simple moving average
-#define SMA_COUNTS 100
+#define SMA_COUNTS 10
 
 static uint16_t smaQueue[SMA_COUNTS];
 
@@ -22,12 +22,13 @@ uint16_t sma_get_average_value(uint16_t value)
 	{
 		smaQueueEnqueIndex = smaQueueEnqueIndex - SMA_COUNTS;
 	}
-	else
+
+	if (smaQueueElementsCount < SMA_COUNTS)
 	{
 		smaQueueElementsCount++;
 	}
 
-	uint16_t sumOfElements = 0;
+	uint32_t sumOfElements = 0;
 	for (int i = 0; i < smaQueueElementsCount; ++i)
 	{
 		sumOfElements += smaQueue[i];

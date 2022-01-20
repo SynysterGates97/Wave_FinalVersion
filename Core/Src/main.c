@@ -219,11 +219,11 @@ void MenuProcess(void)
 	}
 }
 
-#define RED    TIM3->CCR3
-#define GREEN    TIM3->CCR2
+#define RED    TIM3->CCR2
+#define GREEN    TIM3->CCR3
 #define BLUE    TIM3->CCR1
 
-#define TOP    65536
+#define TOP    65535
 
 volatile uint16_t BPM=120;
 volatile uint16_t Nature=255;
@@ -823,10 +823,12 @@ void StartDefaultTask(void const * argument)
 
 void fire_simulator_do_one_time_slot(uint16_t slotIndex)
 {
-	uint16_t smaedSlotIndex = sma_get_average_value(slotIndex);
-	RED = TOP;
-	BLUE = slotIndex;
-	GREEN = 0.32549*smaedSlotIndex+2570;
+	uint16_t green = slotIndex;
+	uint16_t blue = slotIndex;
+
+	RED = slotIndex;
+	GREEN = slotIndex*0.15;
+	BLUE = slotIndex * 0;
 }
 /* USER CODE END Header_StartLedTask */
 void StartLedTask(void const * argument)
@@ -835,14 +837,40 @@ void StartLedTask(void const * argument)
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+
+	uint32_t filterUpdTimeMs = 0;
+	uint32_t writeFireTimeMs = 0;
+
+	uint16_t writingValue = 0;
+	uint16_t rndWritingValue = 0;
+
+	float koefficient = 0.2;
   /* Infinite loop */
   for(;;)
   {
 	  if(true)
 	  {
-		  uint16_t random = HAL_RNG_GetRandomNumber(&hrng);
 
-		  fire_simulator_do_one_time_slot(random);
+		  if(HAL_GetTick() - filterUpdTimeMs > 400)
+		  {
+			  rndWritingValue = HAL_RNG_GetRandomNumber(&hrng);
+			  filterUpdTimeMs = HAL_GetTick();
+		  }
+
+		  if(HAL_GetTick() - writeFireTimeMs > 100)
+		  {
+			  writingValue = writingValue * (1 - koefficient) + (float)rndWritingValue * koefficient;
+			  writeFireTimeMs = HAL_GetTick();
+
+			  fire_simulator_do_one_time_slot(writingValue);
+
+
+		  }
+
+
+
+//		  uint16_t random = HAL_RNG_GetRandomNumber(&hrng);
+//		  fire_simulator_do_one_time_slot(random);
 
 //		  osDelay(1);
 //		  option1();
