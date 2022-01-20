@@ -812,6 +812,22 @@ void StartDefaultTask(void const * argument)
 * @param argument: Not used
 * @retval None
 */
+//G = 0.647059*x+23130
+//B = 0.32549*x+2570
+
+//#define RED    TIM3->CCR3
+//#define GREEN    TIM3->CCR2
+//#define BLUE    TIM3->CCR1
+//
+//#define TOP    65536
+
+void fire_simulator_do_one_time_slot(uint16_t slotIndex)
+{
+	uint16_t smaedSlotIndex = sma_get_average_value(slotIndex);
+	RED = TOP;
+	BLUE = slotIndex;
+	GREEN = 0.32549*smaedSlotIndex+2570;
+}
 /* USER CODE END Header_StartLedTask */
 void StartLedTask(void const * argument)
 {
@@ -826,19 +842,12 @@ void StartLedTask(void const * argument)
 	  {
 		  uint16_t random = HAL_RNG_GetRandomNumber(&hrng);
 
-		  for (int i = 0; i < 256; ++i)
-		  {
-			  uint16_t randomSmaed = sma_get_average_value(i);
-			  if (i >= 100)
-			  {
-				  randomSmaed = 0;
-			  }
-		  }
+		  fire_simulator_do_one_time_slot(random);
 
-		  osDelay(1);
+//		  osDelay(1);
 //		  option1();
 	  }
-	  osDelay(100);
+	  osDelay(1);
   }
   /* USER CODE END StartLedTask */
 }
