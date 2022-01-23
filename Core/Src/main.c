@@ -848,7 +848,7 @@ void StartLedTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  if(true)
+	  if(usb_ok)
 	  {
 
 		  if(HAL_GetTick() - filterUpdTimeMs > 400)
@@ -866,8 +866,6 @@ void StartLedTask(void const * argument)
 
 
 		  }
-
-
 
 //		  uint16_t random = HAL_RNG_GetRandomNumber(&hrng);
 //		  fire_simulator_do_one_time_slot(random);

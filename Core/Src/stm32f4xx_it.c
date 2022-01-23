@@ -1,3 +1,4 @@
+
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -37,7 +38,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define PRESSING_GUARD_DELAY_MS 100
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -50,6 +51,10 @@ volatile int menuPlay = 0;
 volatile int menuIndex = 0;
 
 volatile int nFiles = 0;
+
+static uint32_t lastTimeOfPressingUp = 0;
+static uint32_t lastTimeOfPressingDown = 0;
+static uint32_t lastTimeOfPressingPlay = 0;
 
 /* USER CODE END PV */
 
@@ -177,7 +182,11 @@ void DebugMon_Handler(void)
 void EXTI1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI1_IRQn 0 */
-	HAL_Delay(5);
+	uint32_t timeSinceLastPressingDownMs = HAL_GetTick() - lastTimeOfPressingDown;
+	if (timeSinceLastPressingDownMs < PRESSING_GUARD_DELAY_MS)
+	{
+		return;
+	}
 	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_1)== 1)
 	{
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
@@ -188,6 +197,8 @@ void EXTI1_IRQHandler(void)
 			menuState = 1;
 		}
 	}
+
+	lastTimeOfPressingDown = HAL_GetTick();
   /* USER CODE END EXTI1_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(Down_Pin);
   /* USER CODE BEGIN EXTI1_IRQn 1 */
@@ -201,7 +212,12 @@ void EXTI1_IRQHandler(void)
 void EXTI2_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI2_IRQn 0 */
-	HAL_Delay(5);
+	uint32_t timeSinceLastPressingUpMs = HAL_GetTick() - lastTimeOfPressingUp;
+	if (timeSinceLastPressingUpMs < PRESSING_GUARD_DELAY_MS)
+	{
+		return;
+	}
+
 	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_2)== 1)
 	{
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
@@ -212,6 +228,8 @@ void EXTI2_IRQHandler(void)
 			menuState = 1;
 		}
 	}
+
+	timeSinceLastPressingUpMs = HAL_GetTick();
   /* USER CODE END EXTI2_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(Up_Pin);
   /* USER CODE BEGIN EXTI2_IRQn 1 */
@@ -224,6 +242,11 @@ void EXTI2_IRQHandler(void)
   */
 void EXTI3_IRQHandler(void)
 {
+	uint32_t timeSinceLastPressingPlayMs = HAL_GetTick() - lastTimeOfPressingPlay;
+	if (timeSinceLastPressingPlayMs < PRESSING_GUARD_DELAY_MS)
+	{
+		return;
+	}
   /* USER CODE BEGIN EXTI3_IRQn 0 */
 	HAL_Delay(5);
 	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_3)== 1)
@@ -232,6 +255,8 @@ void EXTI3_IRQHandler(void)
 		menuPlay ^= 1;
 		menuState = 1;
 	}
+
+	lastTimeOfPressingPlay = HAL_GetTick();
   /* USER CODE END EXTI3_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(Play_Pin);
   /* USER CODE BEGIN EXTI3_IRQn 1 */
