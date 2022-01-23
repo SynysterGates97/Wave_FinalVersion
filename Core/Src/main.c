@@ -139,30 +139,31 @@ void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
 }
 static void GetFileList(void)
 {
-   FRESULT result;                                                               /* FatFs function common result code */
-   /* File read buffer */
+	FRESULT result; /* FatFs function common result code */
+	/* File read buffer */
 
-   DIR dir;
+	DIR dir;
 //   nFiles = 0;
-   static FILINFO fileInfo;
+	static FILINFO fileInfo;
 
+	result = f_opendir(&dir, "/");
 
-   result = f_opendir(&dir, "/");
-
-   if (result == FR_OK)//FR_NOT_ENABLED
-   {
-      result = f_readdir(&dir, &fileInfo);//??? ???? ????? ? ????? ???????? system volume
-      while (((result = f_readdir(&dir, &fileInfo)) == FR_OK) && fileInfo.fname[0])
-      {
-//         if(strstr(fileInfo.fname,".wav"))
-//         {
-//           FilNam[nFiles] =  ff_malloc(strlen(fileInfo.fname));
-//           strncpy(FilNam[nFiles], fileInfo.fname, (strlen(fileInfo.fname)));
-//           nFiles++;
-//         }
-      }
-   }
-   f_closedir(&dir);
+	if (result == FR_OK) //FR_NOT_ENABLED
+	{
+		result = f_readdir(&dir, &fileInfo); //??? ???? ????? ? ????? ???????? system volume
+		while (((result = f_readdir(&dir, &fileInfo)) == FR_OK)
+				&& fileInfo.fname[0])
+		{
+			if (strstr(fileInfo.fname, ".wav"))
+			{
+				FilNam[nFiles] = ff_malloc(strlen(fileInfo.fname));
+				strncpy(FilNam[nFiles], fileInfo.fname,
+						(strlen(fileInfo.fname)));
+				nFiles++;
+			}
+		}
+	}
+	f_closedir(&dir);
 }
 
 void GetFileInfo(void)
