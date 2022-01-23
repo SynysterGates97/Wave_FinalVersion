@@ -157,8 +157,10 @@ static void GetFileList(void)
 			if (strstr(fileInfo.fname, ".wav"))
 			{
 				FilNam[nFiles] = ff_malloc(strlen(fileInfo.fname));
-				strncpy(FilNam[nFiles], fileInfo.fname,
-						(strlen(fileInfo.fname)));
+
+				uint32_t nameSizeInBytes = strlen(fileInfo.fname);
+				strncpy(FilNam[nFiles], fileInfo.fname, nameSizeInBytes);
+
 				nFiles++;
 			}
 		}
@@ -169,7 +171,7 @@ static void GetFileList(void)
 void GetFileInfo(void)
 {
    LCD_Clear();
-   if(f_open(&WavFile,"23.wav", FA_OPEN_EXISTING | FA_READ)==FR_OK)
+   if(f_open(&WavFile,FilNam[menuIndex], FA_OPEN_EXISTING | FA_READ)==FR_OK)
    {
       uint32_t duration;
       uint32_t bytesread;
@@ -205,7 +207,7 @@ void MenuProcess(void)
 		case AUDIO_PLAYBACK:
 			WaveDataLength = waveformat->FileSize;
 			// TODO: FileName - нужно заменить на File
-			if (f_open(&WavFile, "23.wav", FA_OPEN_EXISTING | FA_READ) == FR_OK) {
+			if (f_open(&WavFile, FilNam[menuIndex], FA_OPEN_EXISTING | FA_READ) == FR_OK) {
 				AudioPlay_Start(waveformat->SampleRate);
 				f_close(&WavFile);
 			}
@@ -304,7 +306,7 @@ int main(void)
   audioTaskHandle = osThreadCreate(osThread(audioTask), NULL);
 
   /* definition and creation of menuTask */
-  osThreadDef(menuTask, StartMenuTask, osPriorityLow, 0, 256);
+  osThreadDef(menuTask, StartMenuTask, osPriorityBelowNormal, 0, 256);
   menuTaskHandle = osThreadCreate(osThread(menuTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -797,16 +799,10 @@ void StartAudioTask(void const * argument)
   for(;;)
   {
 
-//		if (Appli_state == APPLICATION_READY && !usb_ok)
-//		{
-//			GetFileList();
-//			usb_ok = TRUE;
-//		}
-//
-//		if (usb_ok == TRUE)
-//		{
-//			MenuProcess();
-//		}
+	  if(playing_now)
+	  {
+		 MenuProcess();
+	  }
 
 //		char str[17];
 //		sprintf(str, "u:%d|d:%d|i=%d|s:%d", menuUp, menuDown, menuIndex,
