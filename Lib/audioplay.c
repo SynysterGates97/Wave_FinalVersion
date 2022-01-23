@@ -46,7 +46,7 @@ static uint8_t Is_cs43l22_Stop = 1;
 volatile uint32_t PauseResumeStatus = IDLE_STATUS;  
 
 extern volatile int menuPlay;
-extern volatile int state;
+extern volatile int menuState;
 extern volatile int playing_changed;
 
 #define   CS43L22_REG_MISC_CTL            0x0E

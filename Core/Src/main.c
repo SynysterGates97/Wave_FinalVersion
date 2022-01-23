@@ -232,105 +232,6 @@ volatile uint16_t BPM=120;
 volatile uint16_t Nature=255;
 volatile uint16_t Dynamic=0;
 
-uint32_t option1()
-{
-	flag_stop_light = 0;
-	uint32_t i = TOP / 16, j = TOP / 16;
-	uint32_t bpm = 2500 / BPM / 2;
-	///////Розовый
-	while (i < TOP) {
-		RED = i;
-		BLUE = i / 3;
-		i++;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	// i=TOP/16;
-	while (i > TOP / 16 + 1) {
-		RED = i;
-		BLUE = i / 3;
-		i--;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	BLUE = 0;
-	///////оранжевый
-	while (i < TOP) {
-		RED = i;
-		GREEN = i / 7;
-		i++;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	while (i > TOP / 16 + 1) {
-		RED = i;
-		GREEN = i / 7;
-		i--;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	///////желтый
-	while (i < TOP) {
-		RED = i;
-		GREEN = i / 3;
-		i++;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	while (i > TOP / 16 + 1) {
-		RED = i;
-		GREEN = i / 3;
-		i--;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	RED = 0;
-	///////Зеленый
-	while (i < TOP) {
-		GREEN = i;
-		i++;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	while (i > TOP / 16 + 1) {
-		GREEN = i;
-		i--;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	GREEN = 0;
-	///////голубой
-	while (i < TOP) {
-		BLUE = i;
-		i++;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	while (i > TOP / 16 + 1) {
-		BLUE = i;
-		i--;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	BLUE = 0;
-	///////КОРпЧНЕВЫЙ???
-
-	while (i < TOP) {
-		GREEN = i / 2;
-		RED = i;
-		i++;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-	while (i > TOP / 16 + 1) {
-		GREEN = i / 2;
-		RED = i;
-		i--;
-		DelayMicro(bpm);
-	}
-//	CHECK_RESET_LED;
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -403,7 +304,7 @@ int main(void)
   audioTaskHandle = osThreadCreate(osThread(audioTask), NULL);
 
   /* definition and creation of menuTask */
-  osThreadDef(menuTask, StartMenuTask, osPriorityIdle, 0, 128);
+  osThreadDef(menuTask, StartMenuTask, osPriorityLow, 0, 256);
   menuTaskHandle = osThreadCreate(osThread(menuTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -819,20 +720,9 @@ void StartDefaultTask(void const * argument)
 * @param argument: Not used
 * @retval None
 */
-//G = 0.647059*x+23130
-//B = 0.32549*x+2570
-
-//#define RED    TIM3->CCR3
-//#define GREEN    TIM3->CCR2
-//#define BLUE    TIM3->CCR1
-//
-//#define TOP    65536
 
 void fire_simulator_do_one_time_slot(uint16_t slotIndex)
 {
-	uint16_t green = slotIndex;
-	uint16_t blue = slotIndex;
-
 	RED = slotIndex;
 	GREEN = slotIndex*0.15;
 	BLUE = slotIndex * 0;
@@ -907,16 +797,16 @@ void StartAudioTask(void const * argument)
   for(;;)
   {
 
-		if (Appli_state == APPLICATION_READY && !usb_ok)
-		{
-			GetFileList();
-			usb_ok = TRUE;
-		}
-
-		if (usb_ok == TRUE)
-		{
-			MenuProcess();
-		}
+//		if (Appli_state == APPLICATION_READY && !usb_ok)
+//		{
+//			GetFileList();
+//			usb_ok = TRUE;
+//		}
+//
+//		if (usb_ok == TRUE)
+//		{
+//			MenuProcess();
+//		}
 
 //		char str[17];
 //		sprintf(str, "u:%d|d:%d|i=%d|s:%d", menuUp, menuDown, menuIndex,
@@ -942,10 +832,96 @@ void StartMenuTask(void const * argument)
 {
   /* USER CODE BEGIN StartMenuTask */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	for (;;)
+	{
+		if (Appli_state == APPLICATION_READY && !usb_ok)
+		{
+			GetFileList();
+			usb_ok = TRUE;
+			menuState = 1;
+			menuDown = 1;
+		}
+		else if (usb_ok)
+		{
+			if (playing_changed)
+			{
+				// GetConfig(); // Раньше так считывались конфигурационные файлы, в которых была информация о свет. сопровождении.
+				switch_opt ^= 1;
+				flag_stop_light = 1;
+				playing_changed = 0;
+			}
+			if (menuState)
+			{
+				if (menuDown)
+				{
+					if (menuIndex % 2 == 0)
+					{
+						LCD_Clear();
+						LCD_SetPos(0, 0);
+						LCD_String(">");
+						LCD_SetPos(1, 0);
+						LCD_String(FilNam[menuIndex]);
+						LCD_SetPos(0, 1);
+						LCD_String(" ");
+						LCD_SetPos(1, 1);
+						LCD_String(FilNam[menuIndex + 1]);
+					}
+					else
+					{
+						LCD_Clear();
+						LCD_SetPos(0, 0);
+						LCD_String(" ");
+						LCD_SetPos(1, 0);
+						LCD_String(FilNam[menuIndex - 1]);
+						LCD_SetPos(0, 1);
+						LCD_String(">");
+						LCD_SetPos(1, 1);
+						LCD_String(FilNam[menuIndex]);
+					}
+					menuDown = 0;
+				}
+				if (menuUp)
+				{
+					if (menuIndex % 2 == 0)
+					{
+						LCD_Clear();
+						LCD_SetPos(0, 0);
+						LCD_String(">");
+						LCD_SetPos(1, 0);
+						LCD_String(FilNam[menuIndex]);
+						LCD_SetPos(0, 1);
+						LCD_String(" ");
+						LCD_SetPos(1, 1);
+						LCD_String(FilNam[menuIndex + 1]);
+					}
+					else
+					{
+						LCD_Clear();
+						LCD_SetPos(0, 0);
+						LCD_String(" ");
+						LCD_SetPos(1, 0);
+						LCD_String(FilNam[menuIndex - 1]);
+						LCD_SetPos(0, 1);
+						LCD_String(">");
+						LCD_SetPos(1, 1);
+						LCD_String(FilNam[menuIndex]);
+					}
+					menuUp = 0;
+				}
+				if (menuPlay == 1)
+				{
+					sprintf(FileName, FilNam[menuIndex]);
+
+					if (playing_now == 0)
+						playing_changed = 1;
+					playing_now = 1;
+
+				}
+				menuState = 0;
+			}
+		}
+		osDelay(1);
+	}
   /* USER CODE END StartMenuTask */
 }
 

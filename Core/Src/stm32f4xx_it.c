@@ -1,4 +1,3 @@
-
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -229,7 +228,7 @@ void EXTI2_IRQHandler(void)
 		}
 	}
 
-	timeSinceLastPressingUpMs = HAL_GetTick();
+	lastTimeOfPressingUp = HAL_GetTick();
   /* USER CODE END EXTI2_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(Up_Pin);
   /* USER CODE BEGIN EXTI2_IRQn 1 */
@@ -242,14 +241,14 @@ void EXTI2_IRQHandler(void)
   */
 void EXTI3_IRQHandler(void)
 {
+  /* USER CODE BEGIN EXTI3_IRQn 0 */
 	uint32_t timeSinceLastPressingPlayMs = HAL_GetTick() - lastTimeOfPressingPlay;
 	if (timeSinceLastPressingPlayMs < PRESSING_GUARD_DELAY_MS)
 	{
 		return;
 	}
-  /* USER CODE BEGIN EXTI3_IRQn 0 */
-	HAL_Delay(5);
-	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_3)== 1)
+
+	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_3) == 1)
 	{
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
 		menuPlay ^= 1;
