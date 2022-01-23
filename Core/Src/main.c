@@ -62,6 +62,7 @@ TIM_HandleTypeDef htim3;
 osThreadId defaultTaskHandle;
 osThreadId ledTaskHandle;
 osThreadId audioTaskHandle;
+osThreadId menuTaskHandle;
 /* USER CODE BEGIN PV */
 extern volatile int menuState;
 extern volatile int menuDown;
@@ -119,6 +120,7 @@ static void MX_RNG_Init(void);
 void StartDefaultTask(void const * argument);
 void StartLedTask(void const * argument);
 void StartAudioTask(void const * argument);
+void StartMenuTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -398,6 +400,10 @@ int main(void)
   /* definition and creation of audioTask */
   osThreadDef(audioTask, StartAudioTask, osPriorityBelowNormal, 0, 512);
   audioTaskHandle = osThreadCreate(osThread(audioTask), NULL);
+
+  /* definition and creation of menuTask */
+  osThreadDef(menuTask, StartMenuTask, osPriorityIdle, 0, 128);
+  menuTaskHandle = osThreadCreate(osThread(menuTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -922,6 +928,24 @@ void StartAudioTask(void const * argument)
 		osDelay(1);
   }
   /* USER CODE END StartAudioTask */
+}
+
+/* USER CODE BEGIN Header_StartMenuTask */
+/**
+* @brief Function implementing the menuTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartMenuTask */
+void StartMenuTask(void const * argument)
+{
+  /* USER CODE BEGIN StartMenuTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartMenuTask */
 }
 
 /**
