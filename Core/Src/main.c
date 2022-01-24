@@ -85,7 +85,7 @@ FIL MyFile;                   /* File object */
 FIL ConFile;
 FIL WavFile;
 
-char *FilNam[20];
+char FilNam[20][50];
 
 extern USBH_HandleTypeDef hUsbHostFS;
 
@@ -156,8 +156,6 @@ static void GetFileList(void)
 		{
 			if (strstr(fileInfo.fname, ".wav"))
 			{
-				FilNam[nFiles] = ff_malloc(strlen(fileInfo.fname));
-
 				uint32_t nameSizeInBytes = strlen(fileInfo.fname);
 				strncpy(FilNam[nFiles], fileInfo.fname, nameSizeInBytes);
 
