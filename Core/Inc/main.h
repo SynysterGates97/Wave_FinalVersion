@@ -69,6 +69,10 @@ void Error_Handler(void);
 #define Play_Pin GPIO_PIN_3
 #define Play_GPIO_Port GPIOC
 #define Play_EXTI_IRQn EXTI3_IRQn
+#define HC_05_EN_Pin GPIO_PIN_1
+#define HC_05_EN_GPIO_Port GPIOB
+#define HC_05_STATE_Pin GPIO_PIN_7
+#define HC_05_STATE_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
