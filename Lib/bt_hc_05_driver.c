@@ -8,9 +8,6 @@
 #include "bt_hc_05_driver.h"
 #include "stm32f407xx.h"
 
-//#include "stm32f4xx_hal_gpio.h"
-#include "stm32f4xx_hal.h"
-
 #define BT_HC_05_GPIO_STATE_PORT GPIOE
 #define BT_HC_05_GPIO_STATE_PIN GPIO_PIN_7
 
@@ -25,11 +22,19 @@
 
 bool isAtModeEnabled = false;
 
-static UART_HandleTypeDef *btHc05uartHandler;
-
-void bt_hc_05_init(UART_HandleTypeDef *uartHandler)
+static struct
 {
-	btHc05uartHandler = uartHandler;
+	UART_HandleTypeDef *uartHandler;
+	DMA_HandleTypeDef *dmaUartRx;
+	DMA_HandleTypeDef *dmaUartTx;
+
+}btHc05Uart;
+
+void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx, DMA_HandleTypeDef *dmaUartTx)
+{
+	btHc05Uart.uartHandler = uartHandler;
+	btHc05Uart.dmaUartRx = dmaUartRx;
+	btHc05Uart.dmaUartTx = dmaUartTx;
 }
 
 void bt_hc_05_switch_device_mode(bool isGoToAtMode)
