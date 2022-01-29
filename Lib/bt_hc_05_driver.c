@@ -23,6 +23,15 @@
 #define BT_HC_05_RESET_EN_PIN() \
 	HAL_GPIO_WritePin(BT_HC_05_GPIO_STATE_PORT, BT_HC_05_GPIO_EN_PIN, GPIO_PIN_RESET)
 
+bool isAtModeEnabled = false;
+
+static UART_HandleTypeDef *btHc05uartHandler;
+
+void bt_hc_05_init(UART_HandleTypeDef *uartHandler)
+{
+	btHc05uartHandler = uartHandler;
+}
+
 void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 {
 	if (isGoToAtMode)
@@ -33,6 +42,8 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 	{
 		BT_HC_05_RESET_EN_PIN();
 	}
+	isAtModeEnabled = isGoToAtMode;
+
 }
 
 
