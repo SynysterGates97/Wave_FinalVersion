@@ -29,6 +29,7 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "audioplay.h"
+#include "bt_hc_05_driver.h"
 
 /* USER CODE END Includes */
 
@@ -61,7 +62,6 @@ TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
-DMA_HandleTypeDef hdma_usart1_tx;
 
 osThreadId defaultTaskHandle;
 osThreadId ledTaskHandle;
@@ -655,9 +655,6 @@ static void MX_DMA_Init(void)
   /* DMA2_Stream2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-  /* DMA2_Stream7_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 }
 
@@ -770,9 +767,31 @@ void StartDefaultTask(void const * argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
+  	  static uint32_t testStep  = 0;
 	for (;;)
 	{
-		osDelay(1);
+		if(testStep == 0)
+		{
+			bt_hc_05_switch_device_mode(true);
+			testStep++;
+		}
+		else if(testStep == 1)
+		{
+			bt_hc_05_init(&huart1, &hdma_usart1_rx);
+			testStep++;
+		}
+		else if (testStep == 2)
+		{
+			char atCommand[] = "AT+VERSION?\r\n";
+			HAL_StatusTypeDef uartStat = HAL_UART_Transmit(&huart1, (uint8_t*)atCommand, sizeof(atCommand), 5000);
+			testStep++;
+		}
+		else if (testStep == 3)
+		{
+			bt_hc_05_read_data();
+		}
+
+		osDelay(10);
 	}
   /* USER CODE END 5 */
 }

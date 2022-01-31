@@ -35,11 +35,10 @@ static struct
 
 }btHc05Uart;
 
-void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx, DMA_HandleTypeDef *dmaUartTx)
+void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx)
 {
 	btHc05Uart.uartHandler = uartHandler;
 	btHc05Uart.dmaUartRx = dmaUartRx;
-	btHc05Uart.dmaUartTx = dmaUartTx;
 }
 
 void bt_hc_05_switch_device_mode(bool isGoToAtMode)
@@ -57,7 +56,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 
 void bt_hc_05_read_data()
 {
-	 HAL_UART_Receive_DMA(btHc05Uart.uartHandler, btBuffer, BT_HC_05_RX_BUF_SIZE);
+	HAL_StatusTypeDef uartStat = HAL_UART_Receive_DMA(btHc05Uart.uartHandler, btBuffer, 5);
 }
 
 
