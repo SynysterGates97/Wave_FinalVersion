@@ -1,3 +1,10 @@
+/*
+ * bt_hc_05_driver.c
+ *
+ *  Created on: Jan 28, 2022
+ *      Author: Morgan
+ */
+
 #include "bt_hc_05_driver.h"
 #include "stm32f407xx.h"
 
@@ -20,8 +27,6 @@
 #define BT_HC_05_RESET_EN_PIN() \
 	HAL_GPIO_WritePin(BT_HC_05_GPIO_EN_PORT, BT_HC_05_GPIO_EN_PIN, GPIO_PIN_RESET)
 
-#define WAVE_CHILD_DEVICE_NAME "AlphaWaveSon"
-
 bool isAtModeEnabled = false;
 
 uint8_t btBuffer[BT_HC_05_RX_BUF_SIZE] = { 0 };
@@ -40,9 +45,6 @@ void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx
 	btHc05Uart.dmaUartRx = dmaUartRx;
 }
 
-// TODO: когда добавлю на плату возможность отключать питание для модуля, нужно будет отключать его для выхода из режима данных.
-// Сейчас программно из режима данных в режим AT-команд не вернуться!!!
-// Хотя нужно ещё подумать нужно ли это. Возможно достаточно просто обойтись кнопкой отключающей питание МК.
 void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 {
 	uint32_t newUartSpeed = 0;
@@ -57,7 +59,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 		newUartSpeed = BT_HC_05_DATA_MODE_UART_BAUD_RATE;
 
 		BT_HC_05_RESET_EN_PIN();
-		HAL_Delay(5);
+		HAL_Delay(300);
 		HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
 	}
 
@@ -82,21 +84,7 @@ void bt_hc_05_read_data()
 	HAL_StatusTypeDef uartStat = HAL_UART_Receive_DMA(btHc05Uart.uartHandler, btBuffer, 5);
 }
 
-// TODO: Функция инициализирует подключение к дочернему устройству
-// Функцию может вызываться несколько раз уже в процессе подключения, ЭТО НЕ ДОЛЖНО ЛОМАТЬ ЛОГИКУ!
-bool bt_hc_05_connect_to_child_device()
-{
 
-	return true;
-}
-
-// TODO: Функция запускает поиск дочернего устройства по имени
-// Функцию может вызываться несколько раз уже в процессе поиска, ЭТО НЕ ДОЛЖНО ЛОМАТЬ ЛОГИКУ!
-bool bt_hc_05_find_child_device()
-{
-
-	return true;
-}
 
 
 

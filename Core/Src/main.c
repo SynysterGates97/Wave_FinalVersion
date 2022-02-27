@@ -29,8 +29,7 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "audioplay.h"
-#include "Bluetooth/bt_hc_05_driver.h"
-#include "Bluetooth/bt_state_machine.h"
+#include "bt_hc_05_driver.h"
 
 /* USER CODE END Includes */
 
@@ -771,15 +770,30 @@ void StartDefaultTask(void const * argument)
   	  static uint32_t testStep  = 0;
 	for (;;)
 	{
-		uint32_t afterOperationDelayTime = 0;
-		bool needToWaitForConfiguration = false;
-
-		if(!bt_state_machine_process_states(&afterOperationDelayTime, needToWaitForConfiguration))
+		if(testStep == 0)
 		{
-			bt_state_machine_start(&huart1, &hdma_usart1_rx);
+			bt_hc_05_init(&huart1, &hdma_usart1_rx);
+			bt_hc_05_switch_device_mode(true);
+			testStep++;
+		}
+		else if(testStep == 1)
+		{
+			testStep++;
+		}
+		else if (testStep == 2)
+		{
+			char atCommand[] = "AT+VERSION?\r\n";
+			HAL_StatusTypeDef uartStat = HAL_UART_Transmit(&huart1, (uint8_t*)atCommand, sizeof(atCommand), 5000);
+			testStep++;
+		}
+		else if (testStep == 3)
+		{
+			bt_hc_05_switch_device_mode(false);
+//			bt_hc_05_read_data();
+			testStep++;
 		}
 
-		osDelay(afterOperationDelayTime);
+		osDelay(1000);
 	}
   /* USER CODE END 5 */
 }
