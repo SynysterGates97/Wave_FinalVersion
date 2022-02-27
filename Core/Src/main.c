@@ -760,9 +760,9 @@ void StartDefaultTask(void const * argument)
 {
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
-  HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle_DMA(&huart3, RxBuf, 256);
-    __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
   /* USER CODE BEGIN 5 */
+  HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle_DMA(&huart3, RxBuf, 256);
+  __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
   /* Infinite loop */
   for(;;)
   {
