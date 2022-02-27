@@ -11,7 +11,7 @@
 #include "stdbool.h"
 #include "stm32f4xx_hal.h"
 
-void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx);
+void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx, DMA_HandleTypeDef *dmaUartTx);
 
 void bt_hc_05_switch_device_mode(bool isGoToAtMode);
 
