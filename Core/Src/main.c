@@ -621,7 +621,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 57600;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -679,7 +679,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(HC_05_EN_GPIO_Port, HC_05_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(HC_05_EN_GPIO_Port, HC_05_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_14|GPIO_PIN_4, GPIO_PIN_RESET);
@@ -772,12 +772,12 @@ void StartDefaultTask(void const * argument)
 	{
 		if(testStep == 0)
 		{
-			bt_hc_05_init(&huart1, &hdma_usart1_rx);
 			bt_hc_05_switch_device_mode(true);
 			testStep++;
 		}
 		else if(testStep == 1)
 		{
+			bt_hc_05_init(&huart1, &hdma_usart1_rx);
 			testStep++;
 		}
 		else if (testStep == 2)
@@ -788,13 +788,10 @@ void StartDefaultTask(void const * argument)
 		}
 		else if (testStep == 3)
 		{
-			bt_hc_05_switch_device_mode(false);
-			HAL_Delay(5);
-//			bt_hc_05_read_data();
-			testStep++;
+			bt_hc_05_read_data();
 		}
 
-		osDelay(1000);
+		osDelay(10);
 	}
   /* USER CODE END 5 */
 }
