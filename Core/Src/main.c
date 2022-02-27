@@ -789,6 +789,7 @@ void StartDefaultTask(void const * argument)
 		else if (testStep == 3)
 		{
 			bt_hc_05_switch_device_mode(false);
+			HAL_Delay(5);
 //			bt_hc_05_read_data();
 			testStep++;
 		}

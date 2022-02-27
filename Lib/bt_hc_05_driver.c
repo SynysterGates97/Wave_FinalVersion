@@ -59,8 +59,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 		newUartSpeed = BT_HC_05_DATA_MODE_UART_BAUD_RATE;
 
 		BT_HC_05_RESET_EN_PIN();
-		HAL_Delay(300);
-		HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
+		HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"EN_RESAT+RESET\r\n", 10, 3000);
 	}
 
 	btHc05Uart.uartHandler->Init.BaudRate = newUartSpeed;
@@ -71,7 +70,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 		HAL_StatusTypeDef initResult = HAL_UART_Init(btHc05Uart.uartHandler);
 		if (initResult == HAL_OK && isGoToAtMode)
 		{
-			HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
+			HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"EN_TRUE_AT+RESET\r\n", 10, 3000);
 			int a  = 0;
 		}
 	}
