@@ -29,6 +29,7 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "audioplay.h"
+#include "bt_hc_05_driver.h"
 
 /* USER CODE END Includes */
 

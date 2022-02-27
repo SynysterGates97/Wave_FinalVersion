@@ -58,6 +58,7 @@
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Host_Library/Core/Inc"/>
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Wave_FinalVersion/Lib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Wave_FinalVersion/Lib/Bluetooth}&quot;"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1181414978" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -171,6 +172,7 @@
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Host_Library/Core/Inc"/>
 									<listOptionValue builtIn="false" value="../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Wave_FinalVersion/Lib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Wave_FinalVersion/Lib/Bluetooth}&quot;"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1265593308" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
