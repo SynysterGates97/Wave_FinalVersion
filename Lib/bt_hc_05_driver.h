@@ -10,8 +10,6 @@
 
 #include "stdbool.h"
 
-void bt_hc_05_init(UART_HandleTypeDef *uartHandler);
-
 void bt_hc_05_switch_device_mode(bool isGoToAtMode);
 
 #endif /* BT_HC_05_DRIVER_H_ */
