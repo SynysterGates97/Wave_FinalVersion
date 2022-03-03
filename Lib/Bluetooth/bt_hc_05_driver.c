@@ -29,15 +29,33 @@ uint8_t btBuffer[BT_HC_05_RX_BUF_SIZE] = { 0 };
 static struct
 {
 	UART_HandleTypeDef *uartHandler;
+	uint8_t *rxBuf;
 	DMA_HandleTypeDef *dmaUartRx;
 	DMA_HandleTypeDef *dmaUartTx;
 
 }btHc05Uart;
 
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+	if(btHc05Uart.uartHandler != NULL && huart->Instance == btHc05Uart.uartHandler)
+	{
+		// ECHO
+		HAL_UART_Transmit(btHc05Uart.uartHandler, btHc05Uart.rxBuf, Size, 3000);
+		HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+		__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
+	}
+}
+
 void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx)
 {
 	btHc05Uart.uartHandler = uartHandler;
 	btHc05Uart.dmaUartRx = dmaUartRx;
+	btHc05Uart.rxBuf = btBuffer;
+
+	// Включаем прерывание по остановке приема данных
+	HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+	  __HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
 }
 
 // TODO: когда добавлю на плату возможность отключать питание для модуля, нужно будет отключать его для выхода из режима данных.
@@ -57,8 +75,9 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 		newUartSpeed = BT_HC_05_DATA_MODE_UART_BAUD_RATE;
 
 		BT_HC_05_RESET_EN_PIN();
-		HAL_Delay(5);
+		HAL_Delay(10);
 		HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
+
 	}
 
 	btHc05Uart.uartHandler->Init.BaudRate = newUartSpeed;

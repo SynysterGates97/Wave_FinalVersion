@@ -128,21 +128,6 @@ void StartAudioTask(void const * argument);
 void StartMenuTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
-uint8_t RxBuf[256];
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
-	if (huart->Instance == USART3)
-	{
-		/* start the DMA again */
-		HAL_UART_Transmit(&huart3, RxBuf, 10, 3000);
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart3, RxBuf, 256);
-		__HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
-
-	}
-}
-
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -761,12 +746,18 @@ void StartDefaultTask(void const * argument)
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
-  HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle_DMA(&huart3, RxBuf, 256);
-  __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  uint32_t delayMs;
+
+	  bool isBtInitialized = bt_state_machine_process_states(&delayMs, false);
+	  if(!isBtInitialized)
+	  {
+		  bt_state_machine_start(&huart3, &hdma_usart3_rx);
+	  }
+
+	  osDelay(delayMs);
   }
   /* USER CODE END 5 */
 }

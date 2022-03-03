@@ -21,6 +21,8 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 			{
 				// Здесь в будущем возможно будет условный переход в другие состояния,
 				// но сейчас безусловно переходим в состояние активации режима AT-команд.
+
+				// ! На данный момент структура btHc05Uart уже готова к работе.
 				btState = BT_STATE_AT_MODE_ENABLING;
 			}
 		break;
