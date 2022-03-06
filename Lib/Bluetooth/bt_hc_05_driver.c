@@ -22,9 +22,15 @@
 
 #define WAVE_CHILD_DEVICE_NAME "AlphaWaveSon"
 
+///////////////////////////
+#define UART_TRANSMITION_TIMEOUT_MS 1000
+
 bool isAtModeEnabled = false;
 
 uint8_t btBuffer[BT_HC_05_RX_BUF_SIZE] = { 0 };
+
+typedef void (*RxCallbackFunction)(uint8_t *, uint32_t);
+typedef void (*SendDataFunction)(uint8_t *, uint32_t, bool);
 
 static struct
 {
@@ -32,13 +38,28 @@ static struct
 	uint8_t *rxBuf;
 	DMA_HandleTypeDef *dmaUartRx;
 	DMA_HandleTypeDef *dmaUartTx;
+	RxCallbackFunction rx_callback_function;
+	SendDataFunction send_data_function;
+	uint32_t rx_parameter;
 
+	uint32_t controlTimerPeriod;
 }btHc05Uart;
+
+
+
+void bt_hc_send_data(uint8_t *dataToSend, uint32_t size, bool isAtMode)
+{
+	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, dataToSend, size, UART_TRANSMITION_TIMEOUT_MS);
+
+	// Включаем прерывание по остановке приема данных
+	HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+	__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
+}
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
-	if(btHc05Uart.uartHandler != NULL && huart->Instance == btHc05Uart.uartHandler)
+	if(btHc05Uart.uartHandler != NULL && huart == btHc05Uart.uartHandler)
 	{
 		// ECHO
 		HAL_UART_Transmit(btHc05Uart.uartHandler, btHc05Uart.rxBuf, Size, 3000);
@@ -53,10 +74,11 @@ void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx
 	btHc05Uart.dmaUartRx = dmaUartRx;
 	btHc05Uart.rxBuf = btBuffer;
 
-	// Включаем прерывание по остановке приема данных
-	HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
-	  __HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
+	btHc05Uart.send_data_function = bt_hc_send_data;
+	btHc05Uart.send_data_function = NULL;
 }
+
+
 
 // TODO: когда добавлю на плату возможность отключать питание для модуля, нужно будет отключать его для выхода из режима данных.
 // Сейчас программно из режима данных в режим AT-команд не вернуться!!!
@@ -77,7 +99,6 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 		BT_HC_05_RESET_EN_PIN();
 		HAL_Delay(10);
 		HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
-
 	}
 
 	btHc05Uart.uartHandler->Init.BaudRate = newUartSpeed;
