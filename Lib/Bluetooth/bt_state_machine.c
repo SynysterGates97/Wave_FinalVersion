@@ -2,8 +2,12 @@
 #include "bt_hc_05_driver.h"
 uint32_t btState;
 
-#define DEFAULT_DELAY_BETWEEN_UPDATES_MS 1000
+#define DEFAULT_DELAY_BETWEEN_UPDATES_MS 200
+#define MAXIMUM_SCAN_TIME_MS (1 * 60)
 
+uint32_t scanStartTimeMs = 0;
+
+// Флаг needToWaitForConfiguration показывает то, что использутся подключение к BT-конфигуратору
 bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool needToWaitForConfiguration)
 {
 	*delayBeforeNextUpdateMs = DEFAULT_DELAY_BETWEEN_UPDATES_MS;
@@ -31,6 +35,8 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 			{
 				bt_hc_05_switch_device_mode(true);
 				btState = BT_STATE_SCANINIG;
+
+				scanStartTimeMs = HAL_GetTick();
 			}
 		break;
 
@@ -38,11 +44,20 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 			{
 				if(!needToWaitForConfiguration)
 				{
+					uint32_t totalScanTime = HAL_GetTick() - scanStartTimeMs;
+					bool isScanTimeout = totalScanTime > MAXIMUM_SCAN_TIME_MS;
 
-					bool isFound = bt_hc_05_find_child_device();
-					if(isFound)
+					if(!isScanTimeout)
 					{
-						btState = BT_STATE_DATA_MODE_ENABLING;
+						bool isFound = bt_hc_05_start_scan();
+						if(isFound)
+						{
+							btState = BT_STATE_DATA_MODE_ENABLING;
+						}
+					}
+					else
+					{
+						// TODO: лучше в таком случае делать полную перезагрузку, либо вывод на LCD хотя бы
 					}
 				}
 				else

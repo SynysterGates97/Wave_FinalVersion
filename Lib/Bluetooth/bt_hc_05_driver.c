@@ -61,6 +61,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 	if(btHc05Uart.uartHandler != NULL && huart == btHc05Uart.uartHandler)
 	{
+		btHc05Uart.rx_callback_function(btHc05Uart.rxBuf, Size);
 		// ECHO
 		HAL_UART_Transmit(btHc05Uart.uartHandler, btHc05Uart.rxBuf, Size, 3000);
 		HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
@@ -141,10 +142,58 @@ bool bt_hc_05_connect_to_child_device()
 	return true;
 }
 
+enum SyncUartReceiveResult
+{
+	RECEIVE_OK,
+	TIME_OUT,
+	OVERFLOWED,
+	ERROR,
+};
+uint8_t sync_receive_bytes_until_rn(uint8_t *rxBuf, uint32_t rxBufSize, uint32_t maxReceiveTimeMs)
+{
+	uint8_t * ptrToBuf = rxBuf;
+	bool isRnRecived = false;
+	uint32_t sizeOfReceived = 0;
+
+	uint32_t receiveBeginTimeStartMs = HAL_GetTick();
+
+	while(HAL_GetTick() - receiveBeginTimeStartMs < maxReceiveTimeMs)
+	{
+		HAL_StatusTypeDef receiveResult = HAL_UART_Receive(btHc05Uart.uartHandler, ptrToBuf, 1, 100);
+
+		if(receiveResult == HAL_OK)
+		{
+			if(*ptrToBuf == '\r')
+			{
+				return RECEIVE_OK;
+			}
+
+			sizeOfReceived++;
+			ptrToBuf++;
+
+			if(sizeOfReceived > rxBufSize)
+			{
+				return OVERFLOWED;
+			}
+		}
+		else
+		{
+			return ERROR;
+		}
+	}
+	return TIME_OUT;
+
+}
+
 // TODO: Функция запускает поиск дочернего устройства по имени
 // Функцию может вызываться несколько раз уже в процессе поиска, ЭТО НЕ ДОЛЖНО ЛОМАТЬ ЛОГИКУ!
-bool bt_hc_05_find_child_device()
+bool bt_hc_05_start_scan()
 {
+	// Ищем до 10 устройств по rssi с таймаутом в 60 секунд.
+	//AT+INQM=1,10,77\r\n
+
+	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
+	sync_receive_bytes_until_rn(btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE, 100);
 	return true;
 }
 
