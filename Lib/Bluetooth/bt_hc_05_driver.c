@@ -22,6 +22,8 @@
 
 #define WAVE_CHILD_DEVICE_NAME "AlphaWaveSon"
 
+#define AT_COMMAND_OK_RESPONSE "OK"
+
 ///////////////////////////
 #define UART_TRANSMITION_TIMEOUT_MS 1000
 
@@ -40,12 +42,10 @@ static struct
 	DMA_HandleTypeDef *dmaUartTx;
 	RxCallbackFunction rx_callback_function;
 	SendDataFunction send_data_function;
-	uint32_t rx_parameter;
 
-	uint32_t controlTimerPeriod;
+	uint32_t *rx_parameter;
+	uint32_t sendAtCommandTimeBeginMs;
 }btHc05Uart;
-
-
 
 void bt_hc_send_data(uint8_t *dataToSend, uint32_t size, bool isAtMode)
 {
@@ -75,10 +75,23 @@ void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx
 	btHc05Uart.rxBuf = btBuffer;
 
 	btHc05Uart.send_data_function = bt_hc_send_data;
-	btHc05Uart.send_data_function = NULL;
+	btHc05Uart.rx_callback_function = NULL;
 }
 
+///
+void atResponseCallback_at_reset(uint8_t * responseData, uint32_t parameter)
+{
+	if(strstr(responseData, AT_COMMAND_OK_RESPONSE) != NULL)
+	{
 
+	}
+}
+void send_at_reset()
+{
+	btHc05Uart.rx_callback_function = atResponseCallback_at_reset;
+	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
+}
+///
 
 // TODO: когда добавлю на плату возможность отключать питание для модуля, нужно будет отключать его для выхода из режима данных.
 // Сейчас программно из режима данных в режим AT-команд не вернуться!!!
