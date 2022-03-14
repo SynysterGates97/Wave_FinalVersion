@@ -149,7 +149,7 @@ enum SyncUartReceiveResult
 	OVERFLOWED,
 	ERROR,
 };
-uint8_t sync_receive_bytes_until_rn(uint8_t *rxBuf, uint32_t rxBufSize, uint32_t maxReceiveTimeMs)
+int32_t sync_receive_bytes_until_rn(uint8_t *rxBuf, uint32_t rxBufSize, uint32_t maxReceiveTimeMs)
 {
 	uint8_t * ptrToBuf = rxBuf;
 	bool isRnRecived = false;
@@ -192,8 +192,11 @@ bool bt_hc_05_start_scan()
 	// Ищем до 10 устройств по rssi с таймаутом в 60 секунд.
 	//AT+INQM=1,10,77\r\n
 
-	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
+	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,10,77\r\n", 10, 3000);
 	sync_receive_bytes_until_rn(btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE, 100);
+
+
+
 	return true;
 }
 
