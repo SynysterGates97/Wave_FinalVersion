@@ -147,7 +147,7 @@ enum SyncUartReceiveResult
 	RECEIVE_OK,
 	TIME_OUT,
 	OVERFLOWED,
-	ERROR,
+	FAILED
 };
 int32_t sync_receive_bytes_until_rn(uint8_t *rxBuf, uint32_t rxBufSize, uint32_t maxReceiveTimeMs)
 {
@@ -178,7 +178,7 @@ int32_t sync_receive_bytes_until_rn(uint8_t *rxBuf, uint32_t rxBufSize, uint32_t
 		}
 		else
 		{
-			return ERROR;
+			return FAILED;
 		}
 	}
 	return TIME_OUT;
@@ -194,8 +194,6 @@ bool bt_hc_05_start_scan()
 
 	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,10,77\r\n", 10, 3000);
 	sync_receive_bytes_until_rn(btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE, 100);
-
-
 
 	return true;
 }
