@@ -37,6 +37,8 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 				btState = BT_STATE_SCANINIG;
 
 				scanStartTimeMs = HAL_GetTick();
+
+				*delayBeforeNextUpdateMs = 1;
 			}
 		break;
 
