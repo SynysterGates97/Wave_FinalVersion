@@ -111,7 +111,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 		newUartSpeed = BT_HC_05_DATA_MODE_UART_BAUD_RATE;
 
 		BT_HC_05_RESET_EN_PIN();
-		HAL_Delay(10);
+		HAL_Delay(200);
 		HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
 	}
 
