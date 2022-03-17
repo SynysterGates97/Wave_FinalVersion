@@ -1,6 +1,8 @@
 #include "bt_hc_05_driver.h"
 #include "stm32f407xx.h"
 
+#include <string.h>
+
 // TX_MCU =
 
 #define BT_HC_05_RX_BUF_SIZE 256
@@ -61,12 +63,13 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 	if(btHc05Uart.uartHandler != NULL && huart == btHc05Uart.uartHandler)
 	{
-		btHc05Uart.rx_callback_function(btHc05Uart.rxBuf, Size);
+//		btHc05Uart.rx_callback_function(btHc05Uart.rxBuf, Size);
 		// ECHO
-		HAL_UART_Transmit(btHc05Uart.uartHandler, btHc05Uart.rxBuf, Size, 3000);
-		HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
-		__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
+		// HAL_UART_Transmit(btHc05Uart.uartHandler, btHc05Uart.rxBuf, Size, 3000);
+
 	}
+	HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+			__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
 }
 
 void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx)
@@ -112,7 +115,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 
 		BT_HC_05_RESET_EN_PIN();
 		HAL_Delay(200);
-		HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
+		HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
 	}
 
 	btHc05Uart.uartHandler->Init.BaudRate = newUartSpeed;
@@ -128,6 +131,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 	}
 
 	isAtModeEnabled = isGoToAtMode;
+	HAL_Delay(200);
 }
 
 void bt_hc_05_read_data()
@@ -152,7 +156,6 @@ enum SyncUartReceiveResult
 int32_t sync_receive_bytes_until_rn(uint8_t *rxBuf, uint32_t rxBufSize, uint32_t maxReceiveTimeMs)
 {
 	uint8_t * ptrToBuf = rxBuf;
-	bool isRnRecived = false;
 	uint32_t sizeOfReceived = 0;
 
 	uint32_t receiveBeginTimeStartMs = HAL_GetTick();
@@ -192,10 +195,19 @@ bool bt_hc_05_start_scan()
 	// Ищем до 10 устройств по rssi с таймаутом в 60 секунд.
 	//AT+INQM=1,10,77\r\n
 
-	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,10,77\r\n", 10, 3000);
-	sync_receive_bytes_until_rn(btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE, 100);
+	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,10,77\r\n", 19, 3000);
+	HAL_UART_Receive(btHc05Uart.uartHandler, btHc05Uart.rxBuf, 20, 500);
 
-	return true;
+	if(strstr((char *)btHc05Uart.rxBuf, "OK\r\n"))
+	{
+		HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+		__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
+		return true;
+	}
+
+
+	return false;
+
 }
 
 
