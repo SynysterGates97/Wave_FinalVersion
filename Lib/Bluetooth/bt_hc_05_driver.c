@@ -2,7 +2,7 @@
 #include "stm32f407xx.h"
 
 #include <string.h>
-
+#include "lcd.h"
 // TX_MCU =
 
 #define BT_HC_05_RX_BUF_SIZE 256
@@ -61,15 +61,41 @@ void bt_hc_send_data(uint8_t *dataToSend, uint32_t size, bool isAtMode)
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+
 	if(btHc05Uart.uartHandler != NULL && huart == btHc05Uart.uartHandler)
 	{
+		LCD_Clear();
+		LCD_SetPos(0, 0);
+		char firstPartOfMessage[17] = { '\0' };
+
+		memcpy(firstPartOfMessage,btHc05Uart.rxBuf, 16);
+		LCD_String(firstPartOfMessage);
+
+		if(Size > 16)
+		{
+			uint32_t notFittedBytes = Size - 16;
+			if(notFittedBytes > 16)
+			{
+				notFittedBytes = 16;
+			}
+
+			char secondPartOfMessage[17] = { '\0' };
+			memcpy(secondPartOfMessage,btHc05Uart.rxBuf + 16, notFittedBytes);
+
+			LCD_SetPos(0, 1);
+			LCD_String(secondPartOfMessage);
+		}
+
 //		btHc05Uart.rx_callback_function(btHc05Uart.rxBuf, Size);
 		// ECHO
-		// HAL_UART_Transmit(btHc05Uart.uartHandler, btHc05Uart.rxBuf, Size, 3000);
+//		HAL_UART_Transmit(btHc05Uart.uartHandler, "AT+INQ?\r\n", 9, 100);
+		// HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQ\r\n", 8, 3000);
+
+
+		HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+				__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
 
 	}
-	HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
-			__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
 }
 
 void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx)
@@ -195,16 +221,24 @@ bool bt_hc_05_start_scan()
 	// Ищем до 10 устройств по rssi с таймаутом в 60 секунд.
 	//AT+INQM=1,10,77\r\n
 
-	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,10,77\r\n", 19, 3000);
-	HAL_UART_Receive(btHc05Uart.uartHandler, btHc05Uart.rxBuf, 20, 500);
 
+	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=0,10,199\r\n", 20, 3000);
+	HAL_UART_Receive(btHc05Uart.uartHandler, btHc05Uart.rxBuf, 20, 4000);
+	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQ\r\n", 8, 1000);
+
+	transRes = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+		__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
 	if(strstr((char *)btHc05Uart.rxBuf, "OK\r\n"))
 	{
-		HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
-		__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
+		LCD_Clear();
+			LCD_SetPos(0, 0);
+			char massa[20] = { '\0' };
+			memcpy(massa,btHc05Uart.rxBuf, 10);
+			LCD_String(massa);
+
+
 		return true;
 	}
-
 
 	return false;
 
