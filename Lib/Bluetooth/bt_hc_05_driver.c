@@ -22,7 +22,8 @@
 #define BT_HC_05_RESET_EN_PIN() \
 	HAL_GPIO_WritePin(BT_HC_05_GPIO_EN_PORT, BT_HC_05_GPIO_EN_PIN, GPIO_PIN_RESET)
 
-#define WAVE_CHILD_DEVICE_NAME "AlphaWaveSon"
+//"AlphaWaveSon"
+#define WAVE_CHILD_DEVICE_NAME "realme 3"
 
 #define AT_COMMAND_OK_RESPONSE "OK"
 
@@ -33,8 +34,30 @@ bool isAtModeEnabled = false;
 
 uint8_t btBuffer[BT_HC_05_RX_BUF_SIZE] = { 0 };
 
+
+// 705E,55,BF0F46
+// +INQ:705E:55:BF0F46,5A020C,FFC9,realme 3\r\n
+#define BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE 15
+
+#define AT_INQ_RESPONSE_HEADER				"+INQ:"
+#define AT_INQ_RESPONSE_HEADER_SIZE 		5
+#define AT_INQ_RESPONSE_BT_MAC_ADDR_SIZE 	14
+
+#define AT_INQ_RESPONSE_BT_ADDR_BEGIN_OFFSET 	AT_INQ_RESPONSE_HEADER_SIZE
+#define AT_INQ_RESPONSE_BT_ADDR_FIRST_COLON_OFFSET 	AT_INQ_RESPONSE_HEADER_SIZE + 4
+#define AT_INQ_RESPONSE_BT_ADDR_SECOND_COLON_OFFSET 	AT_INQ_RESPONSE_HEADER_SIZE + 7
+
+#define BT_MAC_ADDR_NAP_STRING_SIZE 4
+#define BT_MAC_ADDR_UAP_STRING_SIZE 2
+#define BT_MAC_ADDR_LAP_STRING_SIZE 6
+
+
+
+char btSonAddressStringForAtBind[BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE] = { 0 };
 typedef void (*RxCallbackFunction)(uint8_t *, uint32_t);
 typedef void (*SendDataFunction)(uint8_t *, uint32_t, bool);
+
+
 
 static struct
 {
@@ -48,6 +71,49 @@ static struct
 	uint32_t *rx_parameter;
 	uint32_t sendAtCommandTimeBeginMs;
 }btHc05Uart;
+
+static bool parse_son_address_in_at_inq_response(const uint8_t *hc05AnswerData, uint32_t answerSize)
+{
+	// 705E,55,BF0F46 - хранить адрес будем в таком формате для удобства HC_05
+	// +INQ:705E:55:BF0F46,5A020C,FFC9,realme 3\r\n - Приходит в таком формате
+	//	#define BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE 15
+	//	char btSonAddressStringForAtBind[BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE] = { 0 };
+
+	uint8_t *ptrToAnswerData = hc05AnswerData;
+
+	if(answerSize > AT_INQ_RESPONSE_HEADER_SIZE + AT_INQ_RESPONSE_BT_MAC_ADDR_SIZE )
+	{
+		ptrToAnswerData = strstr(ptrToAnswerData, AT_INQ_RESPONSE_HEADER);
+		uint32_t bytesLeft = answerSize - (ptrToAnswerData - hc05AnswerData);
+		if(ptrToAnswerData && bytesLeft > AT_INQ_RESPONSE_BT_MAC_ADDR_SIZE)
+		{
+			if(ptrToAnswerData[AT_INQ_RESPONSE_BT_ADDR_FIRST_COLON_OFFSET] == ':' &&
+					ptrToAnswerData[AT_INQ_RESPONSE_BT_ADDR_SECOND_COLON_OFFSET] == ':')
+			{
+				char *ptrToCopyingAddr = btSonAddressStringForAtBind;
+				memcpy((uint8_t*)ptrToCopyingAddr, ptrToAnswerData + AT_INQ_RESPONSE_HEADER_SIZE, BT_MAC_ADDR_NAP_STRING_SIZE);
+				ptrToCopyingAddr += BT_MAC_ADDR_NAP_STRING_SIZE;
+				*(ptrToCopyingAddr++) = ',';
+
+				memcpy(ptrToCopyingAddr,
+						ptrToAnswerData + AT_INQ_RESPONSE_BT_ADDR_FIRST_COLON_OFFSET + 1,
+						BT_MAC_ADDR_UAP_STRING_SIZE);
+				ptrToCopyingAddr += BT_MAC_ADDR_UAP_STRING_SIZE;
+				*(ptrToCopyingAddr++) = ',';
+
+				memcpy(ptrToCopyingAddr,
+										ptrToAnswerData + AT_INQ_RESPONSE_BT_ADDR_SECOND_COLON_OFFSET + 1,
+										BT_MAC_ADDR_LAP_STRING_SIZE);
+
+				// Ноль символ в btSonAddressStringForAtBind можно не заполнять, он уже там.
+				return true;
+			}
+
+		}
+	}
+	return false;
+}
+
 
 void bt_hc_send_data(uint8_t *dataToSend, uint32_t size, bool isAtMode)
 {
@@ -94,6 +160,10 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 			LCD_String(secondPartOfMessage);
 		}
 
+		if(strstr(btHc05Uart.rxBuf, WAVE_CHILD_DEVICE_NAME))
+		{
+			bool sonFound = parse_son_address_in_at_inq_response(btHc05Uart.rxBuf, Size);
+		}
 //		btHc05Uart.rx_callback_function(btHc05Uart.rxBuf, Size);
 		// ECHO
 //		HAL_UART_Transmit(btHc05Uart.uartHandler, "AT+INQ?\r\n", 9, 100);
@@ -231,7 +301,7 @@ bool bt_hc_05_start_scan()
 	//AT+INQM=1,10,77\r\n
 
 
-	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,3,48\r\n", 16, 300);
+	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,8,48\r\n", 16, 300);
 	HAL_UART_Receive(btHc05Uart.uartHandler, bufForSyncReplies, 20, 4000);
 
 	transRes = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
