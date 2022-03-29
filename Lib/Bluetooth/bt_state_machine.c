@@ -34,31 +34,42 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 		case BT_STATE_AT_MODE_ENABLING:
 			{
 				bt_hc_05_switch_device_mode(true);
-				btState = BT_STATE_SCANINIG;
+				btState = BT_STATE_START_SCAN;
 
-				scanStartTimeMs = HAL_GetTick();
 
-				*delayBeforeNextUpdateMs = 1;
 			}
 		break;
 
-		case BT_STATE_SCANINIG:
+		case BT_STATE_START_SCAN:
+			{
+				bt_hc_05_start_scan();
+
+				scanStartTimeMs = HAL_GetTick();
+				btState = BT_STATE_SCANNING;
+
+//
+			}
+		break;
+
+		case BT_STATE_SCANNING:
 			{
 				if(!needToWaitForConfiguration)
 				{
 					uint32_t totalScanTime = HAL_GetTick() - scanStartTimeMs;
 					bool isScanTimeout = totalScanTime > MAXIMUM_SCAN_TIME_MS;
 
-					if(!isScanTimeout)
+					bool sonIsFound = false; // поменять
+					if(sonIsFound)
 					{
-						bool isFound = bt_hc_05_start_scan();
-						if(isFound)
-						{
-							btState = BT_STATE_DATA_MODE_ENABLING;
-						}
+						// goto BIND
+					}
+					else if(!isScanTimeout)
+					{
+						*delayBeforeNextUpdateMs = 500;
 					}
 					else
 					{
+						btState = BT_STATE_NOT_INITIALIZED;
 						// TODO: лучше в таком случае делать полную перезагрузку, либо вывод на LCD хотя бы
 					}
 				}
