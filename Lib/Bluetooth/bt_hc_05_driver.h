@@ -14,6 +14,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode);
 
 bool bt_hc_05_connect_to_child_device();
 bool bt_hc_05_find_child_device();
+void bt_hc_05_bind_to_father();
 
 bool bt_hc_05_start_scan();
 

@@ -88,6 +88,10 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 						LCD_SetPos(0, 1);
 						LCD_String(btSonAddressStringForAtBind);
 
+						bt_hc_05_bind_to_father();
+						btState = BT_STATE_DATA_MODE_ENABLING;
+
+
 						// Только ради теста
 						*delayBeforeNextUpdateMs = 3000;
 						// goto BIND
