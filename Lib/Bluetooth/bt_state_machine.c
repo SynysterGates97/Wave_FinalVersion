@@ -24,6 +24,10 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 	{
 		case BT_STATE_INITIALIZING:
 			{
+				LCD_Clear();
+				LCD_SetPos(0, 0);
+				LCD_String("BT_STATE_INITIALIZING");
+
 				*delayBeforeNextUpdateMs = 1000;
 				// Здесь в будущем возможно будет условный переход в другие состояния,
 				// но сейчас безусловно переходим в состояние активации режима AT-команд.
@@ -35,6 +39,10 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 
 		case BT_STATE_AT_MODE_ENABLING:
 			{
+				LCD_Clear();
+				LCD_SetPos(0, 0);
+				LCD_String("BT_STATE_AT_M");
+
 				bt_hc_05_switch_device_mode(true);
 				btState = BT_STATE_START_SCAN;
 				*delayBeforeNextUpdateMs = 300;
