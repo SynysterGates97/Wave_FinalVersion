@@ -3,9 +3,10 @@
 uint32_t btState;
 
 #define DEFAULT_DELAY_BETWEEN_UPDATES_MS 200
-#define MAXIMUM_SCAN_TIME_MS (1 * 60)
+#define MAXIMUM_SCAN_TIME_MS (1 * 60 * 1000)
 
 uint32_t scanStartTimeMs = 0;
+
 
 // Флаг needToWaitForConfiguration показывает то, что использутся подключение к BT-конфигуратору
 bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool needToWaitForConfiguration)
@@ -23,6 +24,7 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 	{
 		case BT_STATE_INITIALIZING:
 			{
+				*delayBeforeNextUpdateMs = 1000;
 				// Здесь в будущем возможно будет условный переход в другие состояния,
 				// но сейчас безусловно переходим в состояние активации режима AT-команд.
 
@@ -35,19 +37,20 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 			{
 				bt_hc_05_switch_device_mode(true);
 				btState = BT_STATE_START_SCAN;
-
-
+				*delayBeforeNextUpdateMs = 300;
 			}
 		break;
 
 		case BT_STATE_START_SCAN:
 			{
+				LCD_Clear();
+				LCD_SetPos(0, 0);
+				LCD_String("BT_STATE_START_SCAN");
 				bt_hc_05_start_scan();
 
 				scanStartTimeMs = HAL_GetTick();
 				btState = BT_STATE_SCANNING;
 
-//
 			}
 		break;
 
@@ -58,9 +61,27 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 					uint32_t totalScanTime = HAL_GetTick() - scanStartTimeMs;
 					bool isScanTimeout = totalScanTime > MAXIMUM_SCAN_TIME_MS;
 
-					bool sonIsFound = false; // поменять
+					char bufStr[20] = { 0 };
+
+					sprintf(bufStr, "SCAN_TIME:%d", totalScanTime);
+
+					LCD_Clear();
+					LCD_SetPos(0, 0);
+					LCD_String(bufStr);
+
+					bool sonIsFound = btSonAddressStringForAtBind[0] != '\0';
 					if(sonIsFound)
 					{
+						sonIsFound = true;
+						LCD_Clear();
+						LCD_SetPos(0, 0);
+						LCD_String("FOUND THIS SHIT!");
+
+						LCD_SetPos(0, 1);
+						LCD_String(btSonAddressStringForAtBind);
+
+						// Только ради теста
+						*delayBeforeNextUpdateMs = 3000;
 						// goto BIND
 					}
 					else if(!isScanTimeout)

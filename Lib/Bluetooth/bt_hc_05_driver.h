@@ -5,6 +5,8 @@
 #include "stm32f4xx_hal.h"
 #include "bt_hc_05_driver.h"
 
+extern volatile char btSonAddressStringForAtBind[];
+
 void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx);
 bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool needToWaitForConfiguration);
 

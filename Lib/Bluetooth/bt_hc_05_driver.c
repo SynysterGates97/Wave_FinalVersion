@@ -53,7 +53,7 @@ uint8_t btBuffer[BT_HC_05_RX_BUF_SIZE] = { 0 };
 
 
 
-char btSonAddressStringForAtBind[BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE] = { 0 };
+volatile char btSonAddressStringForAtBind[BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE] = { 0 };
 typedef void (*RxCallbackFunction)(uint8_t *, uint32_t);
 typedef void (*SendDataFunction)(uint8_t *, uint32_t, bool);
 
@@ -218,7 +218,7 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 		newUartSpeed = BT_HC_05_DATA_MODE_UART_BAUD_RATE;
 
 		BT_HC_05_RESET_EN_PIN();
-		HAL_Delay(200);
+		HAL_Delay(400);
 		HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RESET\r\n", 10, 3000);
 	}
 
@@ -235,7 +235,6 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 	}
 
 	isAtModeEnabled = isGoToAtMode;
-	HAL_Delay(200);
 }
 
 void bt_hc_05_read_data()
