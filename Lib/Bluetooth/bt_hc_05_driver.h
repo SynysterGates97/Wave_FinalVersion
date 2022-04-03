@@ -17,5 +17,6 @@ bool bt_hc_05_find_child_device();
 void bt_hc_05_bind_to_father();
 
 bool bt_hc_05_start_scan();
-
+void bt_hc_05_activate_read();
+void bt_hc_05_send_string(char *message);
 #endif /* BT_HC_05_DRIVER_H_ */
