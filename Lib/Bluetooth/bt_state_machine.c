@@ -134,9 +134,9 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 
 		case BT_STATE_PROCESSING_DATA_FROM_CHILD:
 			{
-//				bt_hc_05_activate_read();
+				bt_hc_05_activate_read();
 				*delayBeforeNextUpdateMs = 1000;
-				bt_hc_05_send_string("BYE!");
+//				bt_hc_05_send_string("BYE!");
 				// think_gear_process_data(currentDataInSomeFormat);
 			}
 		break;

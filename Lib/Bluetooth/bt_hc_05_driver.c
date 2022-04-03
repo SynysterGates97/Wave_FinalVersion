@@ -165,10 +165,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		{
 			sonFound = parse_son_address_in_at_inq_response(btHc05Uart.rxBuf, Size);
 		}
-//		btHc05Uart.rx_callback_function(btHc05Uart.rxBuf, Size);
-		// ECHO
-//		HAL_UART_Transmit(btHc05Uart.uartHandler, "AT+INQ?\r\n", 9, 100);
-		// HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQ\r\n", 8, 3000);
 
 		if(!sonFound)
 		{
@@ -176,10 +172,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 			__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
 		}
 
-		if(sonFound)
-		{
-		}
-
+		memset(btHc05Uart.rxBuf,0,BT_HC_05_RX_BUF_SIZE);
 	}
 }
 
