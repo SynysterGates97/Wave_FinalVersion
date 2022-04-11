@@ -23,7 +23,7 @@
 	HAL_GPIO_WritePin(BT_HC_05_GPIO_EN_PORT, BT_HC_05_GPIO_EN_PIN, GPIO_PIN_RESET)
 
 //"AlphaWaveSon"
-#define WAVE_CHILD_DEVICE_NAME "realme 3"
+#define WAVE_CHILD_DEVICE_NAME "VovaTheDevil"
 
 #define AT_COMMAND_OK_RESPONSE "OK"
 
@@ -239,18 +239,17 @@ void bt_hc_05_switch_device_mode(bool isGoToAtMode)
 
 void bt_hc_05_bind_to_father()
 {
-
 	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQC\r\n", strlen("AT+INQC\r\n"), 1000);
 
 	static char atBindCommand[50] = { 0 };
 	static char atLinkCommand[50] = { 0 };
-	sprintf(atBindCommand, "AT+PAIR=%s\r\n", btSonAddressStringForAtBind);
+	sprintf(atBindCommand, "AT+BIND=%s\r\n", btSonAddressStringForAtBind);
 	sprintf(atLinkCommand, "AT+LINK=%s\r\n", btSonAddressStringForAtBind);
 
 	uint32_t commandLen = strlen(atBindCommand);
 
-	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)atBindCommand, commandLen, 3000);
-	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)atLinkCommand, commandLen, 3000);
+	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+CMODE=0\r\n", 12, 1000);
+	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)atBindCommand, commandLen, 1000);
 }
 void bt_hc_05_read_data()
 {
@@ -315,6 +314,9 @@ bool bt_hc_05_start_scan()
 	//AT+INQM=1,10,77\r\n
 
 	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+ROLE=1\r\n", strlen("AT+ROLE=1\r\n"), 300);
+	HAL_UART_Receive(btHc05Uart.uartHandler, bufForSyncReplies, 20, 200);
+
+	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RMAAD\r\n", strlen("AT+RMAAD\r\n"), 300);
 	HAL_UART_Receive(btHc05Uart.uartHandler, bufForSyncReplies, 20, 200);
 
 	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,8,48\r\n", 16, 300);

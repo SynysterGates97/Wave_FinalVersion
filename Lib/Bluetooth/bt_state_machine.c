@@ -83,7 +83,7 @@ bool bt_state_machine_process_states(uint32_t *delayBeforeNextUpdateMs, bool nee
 						sonIsFound = true;
 						LCD_Clear();
 						LCD_SetPos(0, 0);
-						LCD_String("FOUND THIS SHIT!");
+						LCD_String("FOUND THIS THING!");
 
 						LCD_SetPos(0, 1);
 						LCD_String(btSonAddressStringForAtBind);
