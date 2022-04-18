@@ -1,5 +1,6 @@
 #include "bt_state_machine.h"
 #include "bt_hc_05_driver.h"
+
 uint32_t btState;
 
 #define DEFAULT_DELAY_BETWEEN_UPDATES_MS 200

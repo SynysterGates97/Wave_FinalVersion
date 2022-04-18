@@ -132,47 +132,21 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 	if(btHc05Uart.uartHandler != NULL && huart == btHc05Uart.uartHandler)
 	{
-		memcpy(fullBuf + fullBufSize,btHc05Uart.rxBuf, Size);
-		fullBufSize += Size;
-		if(strstr((char *)btHc05Uart.rxBuf, "OK"))
+		bool sonFound = btSonAddressStringForAtBind[0] != '\0';
+		if (sonFound)
 		{
-			HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+			// necomimi_parse_packet(buf,size)
 		}
-		LCD_Clear();
-		LCD_SetPos(0, 0);
-		char firstPartOfMessage[17] = { '\0' };
-
-		memcpy(firstPartOfMessage,btHc05Uart.rxBuf, 16);
-		LCD_String(firstPartOfMessage);
-
-		if(Size > 16)
-		{
-			uint32_t notFittedBytes = Size - 16;
-			if(notFittedBytes > 16)
-			{
-				notFittedBytes = 16;
-			}
-
-			char secondPartOfMessage[17] = { '\0' };
-			memcpy(secondPartOfMessage,btHc05Uart.rxBuf + 16, notFittedBytes);
-
-			LCD_SetPos(0, 1);
-			LCD_String(secondPartOfMessage);
-		}
-
-		bool sonFound = false;
-		if(strstr(btHc05Uart.rxBuf, WAVE_CHILD_DEVICE_NAME))
+		else if (strstr(btHc05Uart.rxBuf, WAVE_CHILD_DEVICE_NAME))
 		{
 			sonFound = parse_son_address_in_at_inq_response(btHc05Uart.rxBuf, Size);
 		}
 
-		if(!sonFound)
-		{
-			HAL_StatusTypeDef res = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
-			__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
-		}
+		memset(btHc05Uart.rxBuf, 0, BT_HC_05_RX_BUF_SIZE);
 
-		memset(btHc05Uart.rxBuf,0,BT_HC_05_RX_BUF_SIZE);
+		HAL_StatusTypeDef res = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+		__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
+
 	}
 }
 
