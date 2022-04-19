@@ -7,6 +7,7 @@
 
 #include "necomimi.h"
 #include "necomimi_queue.h"
+#include "string.h"
 
 // Минимальный размер пакета 6 байт. Пакеты идут быстро и буферизуются на низком уровне.
 // Для виндовс приложения я делал 256 байт. Но здесь сделаю 512, из-за меньшей производительности.
@@ -35,14 +36,47 @@ enum CodeLevels
 // количество ещё нераспарсенных байт в буфере.
 // буфер будет всегда сдвигаться в право, до тех пока не найдется 0xAA
 static uint32_t _parsingBytesCount = 0;
-static uint32_t _parsingBeginIndex = 0;
 static uint8_t _buffer[NECOMIMI_BUFFER_SIZE];
+static int _parse_packet(uint8_t *buffer, uint32_t size);
+
+static int _parse_necomimi_header(uint8_t *buffer, uint32_t beginIndex, uint32_t bufSize)
+{
+	int parsingIndex = beginIndex;
+	while (bufSize - parsingIndex >= 6)
+	{
+		if (buffer[parsingIndex] == NECOMIMI_HEADER_BYTE)
+		{
+			parsingIndex++;
+			if (buffer[parsingIndex] == NECOMIMI_HEADER_BYTE)
+			{
+				parsingIndex++;
+				int sizeOfPayload = buffer[parsingIndex];
+				if (sizeOfPayload != 0xAA)
+				{
+					return parsingIndex;
+				}
+				else
+				{
+					parsingIndex++;
+				}
+				//Разобран HEADER
+				int length = buffer[parsingIndex + 2];
+			}
+		}
+		else
+		{
+			parsingIndex++;
+		}
+	}
+	return -1;
+}
 
 static bool _bufferize_raw_packets(uint8_t *buffer, uint32_t size)
 {
-	if(size + _parsingBeginIndex + _parsingBytesCount <= NECOMIMI_BUFFER_SIZE)
+	if(size + _parsingBytesCount <= NECOMIMI_BUFFER_SIZE)
 	{
-		memcpy(_buffer + _parsingBytesCount + _parsingBeginIndex, buffer, size);
+		memcpy(_buffer + _parsingBytesCount, buffer, size);
+		_parsingBytesCount += size;
 	}
 	//TODO: в противном случае, пытаться скопировать хотя бы часть.
 }
@@ -50,12 +84,175 @@ static bool _bufferize_raw_packets(uint8_t *buffer, uint32_t size)
 uint32_t necomimi_parse_packet(uint8_t *buffer, uint32_t size)
 {
 	_bufferize_raw_packets(buffer, size);
+
+
+	uint32_t parsingIndex = 0;
 	bool needToParse = true;
-	while (needToParse)
+	while (_parsingBytesCount - parsingIndex >= NECOMIMI_MINIMAL_PACKET_SIZE)
 	{
+
 		// TODO: логика парсинга
 		needToParse = false;
 	}
 
 }
+
+static bool _is_necomimi_crc_ok(uint8_t *payload, int beginIndex, int crcIndex, int bufLen)
+{
+	uint8_t calcCrc8Nec = 0;
+	//TODO: все же верхний код должен делать проверку
+	if (crcIndex >= bufLen - 1)
+		return false;
+
+	for (int i = beginIndex; i <= crcIndex; i++)
+	{
+		calcCrc8Nec += payload[i];
+	}
+	calcCrc8Nec = (uint8_t)(~calcCrc8Nec);
+
+	if (calcCrc8Nec == payload[crcIndex + 1])
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+static int _parse_packet(uint8_t *buffer, uint32_t size)
+{
+	_bufferize_raw_packets(buffer, size);
+
+	//минимальный размер пакета по факту -  6 байт
+	int parsingIndex = 0;
+	int newParsedValues = 0;
+	while (_parsingBytesCount - parsingIndex >= 6)
+	{
+		int headerOffset = _parse_necomimi_header(buffer, parsingIndex, _parsingBytesCount);
+
+		if (headerOffset != -1)
+		{
+			parsingIndex = headerOffset;
+
+			int sizeOfPacket = buffer[parsingIndex];
+			if (sizeOfPacket + 1 <= _parsingBytesCount)
+			{
+				parsingIndex++;
+				//Данных хватает
+				int payloadBeginIndex = parsingIndex;
+				//todo: при отладке проверить.
+				int crcIndex = payloadBeginIndex + sizeOfPacket - 1;
+
+				bool isCrcOk = _is_necomimi_crc_ok(buffer, payloadBeginIndex, crcIndex, _parsingBytesCount);
+
+				if (isCrcOk)
+				{
+					while (parsingIndex < crcIndex)
+					{
+						uint32_t codeLevel = buffer[parsingIndex];
+						switch (codeLevel)
+						{
+							case (ATTENTION):
+								{
+//									newParsedNecomimiPacket.AttentionCount = attentionCount;
+//									newParsedNecomimiPacket.ESenseAttention = buffer[parsingIndex + 1];
+									parsingIndex += 2;
+									break;
+								}
+							case (MEDITATION):
+								{
+//									newParsedNecomimiPacket.ESenseMeditation = buffer[parsingIndex + 1];
+									parsingIndex += 2;
+									break;
+								}
+							case (POOR_SIGNAL_QUALITY):
+								{
+//									newParsedNecomimiPacket.PoorSignalQuality = buffer[parsingIndex + 1];
+									parsingIndex += 2;
+									break;
+								}
+							case (BATTERY_LEVEL):
+								{
+//									newParsedNecomimiPacket.BatteryLevel = buffer[parsingIndex + 1];
+									parsingIndex += 2;
+									break;
+								}
+								//не готово
+							case (ASIC_EEG_POWER):
+								{
+									//(AsicEegPower, 0, 24);
+									//TODO: на всякий случай дописать
+									//newParsedNecomimiPacket.AsicEegPower = buffer[parsingIndex + 1];
+									parsingIndex += 25;
+									break;
+								}
+							case (EEG_POWER):
+								{
+									//(AsicEegPower, 0, 24);
+									//TODO: на всякий случай дописать
+									//newParsedNecomimiPacket.EegPower = buffer[parsingIndex + 1];
+									parsingIndex += 33;
+									break;
+								}
+							case (HEART_RATE):
+								{
+//									newParsedNecomimiPacket.HeartRate = buffer[parsingIndex + 1];
+									parsingIndex += 2;
+									break;
+								}
+							case (NEVER_USED):
+								{
+									parsingIndex += 2;
+									break;
+								}
+							case (RAW_8BIT):
+								{
+//									newParsedNecomimiPacket.RawWaveValue8bit = buffer[parsingIndex + 1];
+									parsingIndex += 2;
+									break;
+								}
+							case (RAW_MARKER):
+								{
+//									newParsedNecomimiPacket.RawWaveMarker = buffer[parsingIndex + 1];
+									parsingIndex += 2;
+									break;
+								}
+							case (RAW_WAVE_VALUE):
+								{
+									uint16_t firstByte = buffer[parsingIndex + 1];
+									uint16_t secondByte = buffer[parsingIndex + 2];
+//									newParsedNecomimiPacket.RawWaveValue16bit = (uint16_t)(firstByte << 8 | secondByte);
+									parsingIndex += 3;
+									break;
+								}
+							case (RRINTERVAL):
+								{
+									uint16_t firstByte = buffer[parsingIndex + 1];
+									uint16_t secondByte = buffer[parsingIndex + 2];
+//									newParsedNecomimiPacket.PrintervalMs = (UInt16)(firstByte << 8 | secondByte);
+									parsingIndex += 3;
+									break;
+								}
+							default:
+								parsingIndex++;
+								break;
+						}
+
+					}
+				}
+			}
+			else
+			{
+				parsingIndex++;
+			}
+		}
+		if (newParsedValues > 0)
+			return newParsedValues;
+		else
+			return -1;
+	}
+}
+
+
 
