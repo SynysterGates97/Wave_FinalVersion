@@ -1,5 +1,6 @@
 #include "bt_hc_05_driver.h"
 #include "stm32f407xx.h"
+#include "Necomimi/necomimi.h"
 
 #include <string.h>
 #include "lcd.h"
@@ -135,6 +136,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		bool sonFound = btSonAddressStringForAtBind[0] != '\0';
 		if (sonFound)
 		{
+			necomimi_parse_packet(btHc05Uart.rxBuf, Size);
 			// necomimi_parse_packet(buf,size)
 		}
 		else if (strstr(btHc05Uart.rxBuf, WAVE_CHILD_DEVICE_NAME))

@@ -14,11 +14,11 @@
 
 enum ParsingResult
 {
-	PARSED_OK,
-	HEADER_NOT_FOUND,
-	NOT_ENOUGH_DATA,
-	WRONG_CRC,
-	ERROR
+	NECO_PARSE_PARSED_OK,
+	NECO_PARSE_HEADER_NOT_FOUND,
+	NECO_PARSE_NOT_ENOUGH_DATA,
+	NECO_PARSE_WRONG_CRC,
+	NECO_PARSE_ERROR
 };
 
 uint32_t necomimi_parse_packet(uint8_t *buffer, uint32_t size);
