@@ -133,22 +133,27 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 	if(btHc05Uart.uartHandler != NULL && huart == btHc05Uart.uartHandler)
 	{
+		bool needToActivateDma = true;
 		bool sonFound = btSonAddressStringForAtBind[0] != '\0';
 		if (sonFound)
 		{
-			necomimi_parse_packet(btHc05Uart.rxBuf, Size);
-			// necomimi_parse_packet(buf,size)
+//			necomimi_parse_packet(btHc05Uart.rxBuf, Size);
 		}
 		else if (strstr(btHc05Uart.rxBuf, WAVE_CHILD_DEVICE_NAME))
 		{
 			sonFound = parse_son_address_in_at_inq_response(btHc05Uart.rxBuf, Size);
+			needToActivateDma = !sonFound;
+		}
+
+
+
+		if(needToActivateDma)
+		{
+			HAL_StatusTypeDef res = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
+			__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
 		}
 
 		memset(btHc05Uart.rxBuf, 0, BT_HC_05_RX_BUF_SIZE);
-
-		HAL_StatusTypeDef res = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
-		__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
-
 	}
 }
 
