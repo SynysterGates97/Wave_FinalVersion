@@ -137,15 +137,13 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		bool sonFound = btSonAddressStringForAtBind[0] != '\0';
 		if (sonFound)
 		{
-//			necomimi_parse_packet(btHc05Uart.rxBuf, Size);
+			necomimi_parse_packet(btHc05Uart.rxBuf, Size);
 		}
 		else if (strstr(btHc05Uart.rxBuf, WAVE_CHILD_DEVICE_NAME))
 		{
 			sonFound = parse_son_address_in_at_inq_response(btHc05Uart.rxBuf, Size);
 			needToActivateDma = !sonFound;
 		}
-
-
 
 		if(needToActivateDma)
 		{

@@ -9,10 +9,12 @@
 #include "necomimi_queue.h"
 #include "string.h"
 
+#include "lcd.h"
+
 // Минимальный размер пакета 6 байт. Пакеты идут быстро и буферизуются на низком уровне.
 // Для виндовс приложения я делал 256 байт. Но здесь сделаю 512, из-за меньшей производительности.
 
-#define NECOMIMI_BUFFER_SIZE 512
+#define NECOMIMI_BUFFER_SIZE 256
 
 #define NECOMIMI_MINIMAL_PACKET_SIZE 6
 #define NECOMIMI_HEADER_BYTE 0xAA
@@ -84,17 +86,15 @@ static bool _bufferize_raw_packets(uint8_t *buffer, uint32_t size)
 uint32_t necomimi_parse_packet(uint8_t *buffer, uint32_t size)
 {
 	_bufferize_raw_packets(buffer, size);
+	uint32_t parsingBytesCountBeforeParsing = _parsingBytesCount;
 
+	uint32_t parsedUpToIndex = _parse_packet(_buffer, size);
 
-	uint32_t parsingIndex = 0;
-	bool needToParse = true;
-	while (_parsingBytesCount - parsingIndex >= NECOMIMI_MINIMAL_PACKET_SIZE)
-	{
+	static uint8_t transferBuffer[NECOMIMI_BUFFER_SIZE] = { 0 };
+	memcpy(transferBuffer, _buffer, NECOMIMI_BUFFER_SIZE);
+	memcpy(_buffer, transferBuffer + parsedUpToIndex, parsingBytesCountBeforeParsing - parsedUpToIndex);
 
-		// TODO: логика парсинга
-		needToParse = false;
-	}
-
+	_parsingBytesCount = parsingBytesCountBeforeParsing - parsedUpToIndex;
 }
 
 static bool _is_necomimi_crc_ok(uint8_t *payload, int beginIndex, int crcIndex, int bufLen)
@@ -122,8 +122,6 @@ static bool _is_necomimi_crc_ok(uint8_t *payload, int beginIndex, int crcIndex, 
 
 static int _parse_packet(uint8_t *buffer, uint32_t size)
 {
-	_bufferize_raw_packets(buffer, size);
-
 	//минимальный размер пакета по факту -  6 байт
 	int parsingIndex = 0;
 	int newParsedValues = 0;
@@ -155,6 +153,14 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 						{
 							case (ATTENTION):
 								{
+									static attentionCount = 0;
+									char bufStr[25] = { 0 };
+
+									sprintf(bufStr, "ATTENTION:%d %d ", buffer[parsingIndex + 1], attentionCount++);
+
+//									LCD_Clear();
+									LCD_SetPos(0, 0);
+									LCD_String(bufStr);
 //									newParsedNecomimiPacket.AttentionCount = attentionCount;
 //									newParsedNecomimiPacket.ESenseAttention = buffer[parsingIndex + 1];
 									parsingIndex += 2;
@@ -162,6 +168,14 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 								}
 							case (MEDITATION):
 								{
+									static meditationCount = 0;
+									char bufStr[25] = { 0 };
+
+									sprintf(bufStr, "MEDITATION:%d %d ", buffer[parsingIndex + 1], meditationCount++);
+
+//									LCD_Clear();
+									LCD_SetPos(0, 1);
+									LCD_String(bufStr);
 //									newParsedNecomimiPacket.ESenseMeditation = buffer[parsingIndex + 1];
 									parsingIndex += 2;
 									break;
@@ -247,11 +261,12 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 				parsingIndex++;
 			}
 		}
-		if (newParsedValues > 0)
-			return newParsedValues;
 		else
-			return -1;
+		{
+			break;
+		}
 	}
+	return parsingIndex;
 }
 
 
