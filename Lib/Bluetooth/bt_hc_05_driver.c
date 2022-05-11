@@ -1,6 +1,7 @@
 #include "bt_hc_05_driver.h"
 #include "stm32f407xx.h"
 #include "Necomimi/necomimi.h"
+#include "Necomimi/necomimi_queue.h"
 
 #include <string.h>
 #include "lcd.h"
@@ -163,6 +164,8 @@ void bt_hc_05_init(UART_HandleTypeDef *uartHandler, DMA_HandleTypeDef *dmaUartRx
 
 	btHc05Uart.send_data_function = bt_hc_send_data;
 	btHc05Uart.rx_callback_function = NULL;
+
+	necomimi_queue_init();
 }
 
 ///
