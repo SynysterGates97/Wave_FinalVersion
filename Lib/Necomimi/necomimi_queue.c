@@ -16,9 +16,6 @@ osMutexId necomimiQueueMutexId;
 uint32_t necomimiQueueElementsInQueue;
 
 // По терминологии FIFO - это индекс вставки, вакантное место
-uint32_t necomimiFirstInsertIndex;
-uint32_t necomimiLastInsertIndex;
-
 uint32_t necomimiQueueBeginIndex;
 uint32_t necomimiQueueEndIndex;
 
@@ -28,36 +25,41 @@ bool necomimi_queue_init()
 {
 	necomimiQueueElementsInQueue = 0;
 
+	necomimiQueueBeginIndex = 0;
 	necomimiQueueEndIndex = 0;
-	necomimiQueueInsertIndex = 0;
 
 	necomimiQueueMutexId = osMutexCreate(osMutex(necomimiQueueMutex));
 
 	return necomimiQueueMutexId != NULL;
 }
 
+uint32_t necomimi_get_elements_count()
+{
+	return necomimiQueueElementsInQueue;
+}
 bool necomimi_queue_enque(NecomimiPacketUnit *necomimiPacket)
 {
 	osStatus waitResult = osMutexWait(necomimiQueueMutexId, NECOMIMI_MUTEX_WAIT_TIME_MS);
 	if(waitResult == osOK)
 	{
-		if (necomimiQueueElementsInQueue < NECOMIMI_QUEUE_SIZE)
+		necomimiQueue[necomimiQueueEndIndex] = *necomimiPacket;
+		necomimiQueueEndIndex++;
+
+		necomimiQueueElementsInQueue++;
+		if(necomimiQueueElementsInQueue > NECOMIMI_QUEUE_SIZE)
+			necomimiQueueElementsInQueue = NECOMIMI_QUEUE_SIZE;
+
+		if (necomimiQueueEndIndex > NECOMIMI_QUEUE_SIZE - 1)
 		{
-			memcpy(necomimiQueue[necomimiQueueInsertIndex], necomimiPacket, sizeof(NecomimiPacketUnit));
-			necomimiQueueInsertIndex++;
+			necomimiQueueEndIndex = 0;
+		}
 
-			if (necomimiQueueInsertIndex > NECOMIMI_QUEUE_SIZE - 1)
+		if (necomimiQueueEndIndex == necomimiQueueBeginIndex)
+		{
+			necomimiQueueBeginIndex++;
+			if (necomimiQueueBeginIndex > NECOMIMI_QUEUE_SIZE - 1)
 			{
-				necomimiQueueEndIndex = 0;
-			}
-
-			if (necomimiQueueInsertIndex == necomimiQueueBeginIndex)
-			{
-				necomimiQueueBeginIndex++;
-				if (necomimiQueueBeginIndex > NECOMIMI_QUEUE_SIZE - 1)
-				{
-					necomimiQueueBeginIndex = 0;
-				}
+				necomimiQueueBeginIndex = 0;
 			}
 		}
 
@@ -68,6 +70,7 @@ bool necomimi_queue_enque(NecomimiPacketUnit *necomimiPacket)
 	osMutexRelease(necomimiQueueMutexId);
 	return false;
 }
+
 // Это позволит не взаимодействовать с мьютексом снаружи: "NecomimiPacketUnit *outputNecomimiPacket"
 bool necomimi_queue_deque(NecomimiPacketUnit *outputNecomimiPacket)
 {
@@ -76,23 +79,24 @@ bool necomimi_queue_deque(NecomimiPacketUnit *outputNecomimiPacket)
 	{
 		if (necomimiQueueElementsInQueue > 0)
 		{
-			memcpy(outputNecomimiPacket, necomimiQueue,sizeof(necomimiQueue));
+			*outputNecomimiPacket = necomimiQueue[necomimiQueueBeginIndex];
 			necomimiQueueElementsInQueue--;
 
-			if(necomimiQueueEndIndex > necomimiQueueBeginIndex)
+			if(necomimiQueueBeginIndex > 0)
 			{
-				necomimiQueueEndIndex--;
+				necomimiQueueBeginIndex--;
 			}
-			else if (necomimiQueueEndIndex < necomimiQueueBeginIndex)
+			else
 			{
-
+				necomimiQueueBeginIndex == NECOMIMI_QUEUE_SIZE - 1;
 			}
 
-
+			osMutexRelease(necomimiQueueMutexId);
+			return true;
 		}
 
 		osMutexRelease(necomimiQueueMutexId);
-		return true;
+		return false;
 	}
 
 	osMutexRelease(necomimiQueueMutexId);

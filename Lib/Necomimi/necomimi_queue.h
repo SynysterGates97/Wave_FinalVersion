@@ -14,9 +14,7 @@
 
 #define NECOMIMI_QUEUE_SIZE 50
 
-extern uint32_t necomimiQueueElementsInQueue;
-extern NecomimiPacketUnit necomimiQueue[NECOMIMI_QUEUE_SIZE];
-
+uint32_t necomimi_get_elements_count();
 bool necomimi_queue_init();
 bool necomimi_queue_enque(NecomimiPacketUnit *necomimiPacket);
 // Это позволит не взаимодействовать с мьютексом снаружи: "NecomimiPacketUnit *outputNecomimiPacket"
