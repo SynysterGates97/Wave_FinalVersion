@@ -146,6 +146,7 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 
 				if (isCrcOk)
 				{
+					NecomimiPacketUnit parsedPacket;
 					while (parsingIndex < crcIndex)
 					{
 						uint32_t codeLevel = buffer[parsingIndex];
@@ -157,7 +158,7 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 									char bufStr[25] = { 0 };
 
 									sprintf(bufStr, "ATTENTION:%d %d ", buffer[parsingIndex + 1], attentionCount++);
-
+									parsedPacket.attentionLevel = buffer[parsingIndex + 1];
 //									LCD_Clear();
 									LCD_SetPos(0, 0);
 									LCD_String(bufStr);
@@ -172,7 +173,7 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 									char bufStr[25] = { 0 };
 
 									sprintf(bufStr, "MEDITATION:%d %d ", buffer[parsingIndex + 1], meditationCount++);
-
+									parsedPacket.meditationLevel = buffer[parsingIndex + 1];
 //									LCD_Clear();
 									LCD_SetPos(0, 1);
 									LCD_String(bufStr);
@@ -253,6 +254,7 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 								break;
 						}
 
+						necomimi_queue_enque(&parsedPacket);
 					}
 				}
 			}
