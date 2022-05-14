@@ -30,6 +30,8 @@
 #include "stdbool.h"
 #include "audioplay.h"
 #include "bt_hc_05_driver.h"
+#include "Necomimi/necomimi_queue.h"
+#include "Necomimi/necomimi_packet.h"
 
 /* USER CODE END Includes */
 
@@ -810,26 +812,32 @@ void StartLedTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  if(usb_ok)
+	  static NecomimiPacketUnit necomimiPacket;
+
+	  if(necomimi_queue_deque(&necomimiPacket))
 	  {
 
-		  if(HAL_GetTick() - filterUpdTimeMs > 400)
-		  {
-			  rndWritingValue = HAL_RNG_GetRandomNumber(&hrng);
-			  filterUpdTimeMs = HAL_GetTick();
-		  }
-
-		  if(HAL_GetTick() - writeFireTimeMs > 100)
-		  {
-			  writingValue = writingValue * (1 - koefficient) + (float)rndWritingValue * koefficient;
-			  writeFireTimeMs = HAL_GetTick();
-
-			  fire_simulator_do_one_time_slot(writingValue);
-
-
-		  }
 	  }
-	  osDelay(1);
+//	  if(usb_ok)
+//	  {
+//
+//		  if(HAL_GetTick() - filterUpdTimeMs > 400)
+//		  {
+//			  rndWritingValue = HAL_RNG_GetRandomNumber(&hrng);
+//			  filterUpdTimeMs = HAL_GetTick();
+//		  }
+//
+//		  if(HAL_GetTick() - writeFireTimeMs > 100)
+//		  {
+//			  writingValue = writingValue * (1 - koefficient) + (float)rndWritingValue * koefficient;
+//			  writeFireTimeMs = HAL_GetTick();
+//
+//			  fire_simulator_do_one_time_slot(writingValue);
+//
+//
+//		  }
+//	  }
+	  osDelay(1000);
   }
   /* USER CODE END StartLedTask */
 }

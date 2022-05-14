@@ -108,6 +108,8 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+	HAL_Delay(500);
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
