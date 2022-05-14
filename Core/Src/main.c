@@ -828,12 +828,6 @@ void StartLedTask(void const * argument)
 
 
 		  }
-
-//		  uint16_t random = HAL_RNG_GetRandomNumber(&hrng);
-//		  fire_simulator_do_one_time_slot(random);
-
-//		  osDelay(1);
-//		  option1();
 	  }
 	  osDelay(1);
   }
