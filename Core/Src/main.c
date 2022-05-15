@@ -814,9 +814,26 @@ void StartLedTask(void const * argument)
   {
 	  static NecomimiPacketUnit necomimiPacket;
 
+	  uint32_t delayMs = 50;
 	  if(necomimi_queue_deque(&necomimiPacket))
 	  {
+			static uint32_t clearLcdCounter = 0;
+			if(clearLcdCounter % 10 == 0)
+			{
+			  LCD_Clear();
 
+			}
+			clearLcdCounter++;
+			char bufferToLcd[25] = { 0 };
+
+			sprintf(bufferToLcd, "A:%d M:%d C:%d", necomimiPacket.attentionLevel, necomimiPacket.meditationLevel, necomimi_get_elements_count());
+
+			LCD_SetPos(0, 0);
+			LCD_String(bufferToLcd);
+	  }
+	  if (necomimi_get_elements_count() > 10)
+	  {
+		  delayMs = 25;
 	  }
 //	  if(usb_ok)
 //	  {
@@ -837,7 +854,7 @@ void StartLedTask(void const * argument)
 //
 //		  }
 //	  }
-	  osDelay(1000);
+	  osDelay(delayMs);
   }
   /* USER CODE END StartLedTask */
 }

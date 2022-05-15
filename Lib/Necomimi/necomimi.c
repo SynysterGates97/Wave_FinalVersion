@@ -154,14 +154,14 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 						{
 							case (ATTENTION):
 								{
-									static attentionCount = 0;
-									char bufStr[25] = { 0 };
+//									static attentionCount = 0;
+//									char bufStr[25] = { 0 };
 
-									sprintf(bufStr, "ATTENTION:%d %d ", buffer[parsingIndex + 1], attentionCount++);
+//									sprintf(bufStr, "ATTENTION:%d %d ", buffer[parsingIndex + 1], attentionCount++);
 									parsedPacket.attentionLevel = buffer[parsingIndex + 1];
 //									LCD_Clear();
-									LCD_SetPos(0, 0);
-									LCD_String(bufStr);
+//									LCD_SetPos(0, 0);
+//									LCD_String(bufStr);
 //									newParsedNecomimiPacket.AttentionCount = attentionCount;
 //									newParsedNecomimiPacket.ESenseAttention = buffer[parsingIndex + 1];
 									parsingIndex += 2;
@@ -169,14 +169,14 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 								}
 							case (MEDITATION):
 								{
-									static meditationCount = 0;
-									char bufStr[25] = { 0 };
+//									static meditationCount = 0;
+//									char bufStr[25] = { 0 };
 
-									sprintf(bufStr, "MEDITATION:%d %d ", buffer[parsingIndex + 1], meditationCount++);
+//									sprintf(bufStr, "MEDITATION:%d %d ", buffer[parsingIndex + 1], meditationCount++);
 									parsedPacket.meditationLevel = buffer[parsingIndex + 1];
 //									LCD_Clear();
-									LCD_SetPos(0, 1);
-									LCD_String(bufStr);
+//									LCD_SetPos(0, 1);
+//									LCD_String(bufStr);
 //									newParsedNecomimiPacket.ESenseMeditation = buffer[parsingIndex + 1];
 									parsingIndex += 2;
 									break;
