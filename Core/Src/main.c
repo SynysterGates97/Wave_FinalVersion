@@ -814,7 +814,7 @@ void StartLedTask(void const * argument)
   {
 	  static NecomimiPacketUnit necomimiPacket;
 
-	  uint32_t delayMs = 50;
+	  uint32_t delayMs = 500;
 	  if(necomimi_queue_deque(&necomimiPacket))
 	  {
 			static uint32_t clearLcdCounter = 0;
@@ -833,7 +833,7 @@ void StartLedTask(void const * argument)
 	  }
 	  if (necomimi_get_elements_count() > 10)
 	  {
-		  delayMs = 25;
+		  delayMs = 500;
 	  }
 //	  if(usb_ok)
 //	  {

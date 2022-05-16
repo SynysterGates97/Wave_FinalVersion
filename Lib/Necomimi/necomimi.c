@@ -146,7 +146,8 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 
 				if (isCrcOk)
 				{
-					NecomimiPacketUnit parsedPacket;
+					NecomimiPacketUnit parsedPacket = { 0 };
+					bool isThereAttentionOrMediationPacks = false;
 					while (parsingIndex < crcIndex)
 					{
 						uint32_t codeLevel = buffer[parsingIndex];
@@ -154,17 +155,12 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 						{
 							case (ATTENTION):
 								{
-//									static attentionCount = 0;
-//									char bufStr[25] = { 0 };
 
-//									sprintf(bufStr, "ATTENTION:%d %d ", buffer[parsingIndex + 1], attentionCount++);
-									parsedPacket.attentionLevel = buffer[parsingIndex + 1];
-//									LCD_Clear();
-//									LCD_SetPos(0, 0);
-//									LCD_String(bufStr);
 //									newParsedNecomimiPacket.AttentionCount = attentionCount;
 //									newParsedNecomimiPacket.ESenseAttention = buffer[parsingIndex + 1];
 									parsingIndex += 2;
+
+									isThereAttentionOrMediationPacks = true;
 									break;
 								}
 							case (MEDITATION):
@@ -178,6 +174,8 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 //									LCD_SetPos(0, 1);
 //									LCD_String(bufStr);
 //									newParsedNecomimiPacket.ESenseMeditation = buffer[parsingIndex + 1];
+
+									isThereAttentionOrMediationPacks = true;
 									parsingIndex += 2;
 									break;
 								}
@@ -253,6 +251,20 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 								parsingIndex++;
 								break;
 						}
+
+					}
+					if(isThereAttentionOrMediationPacks)
+					{
+						static attentionCount = 0;
+
+						char bufStr[25] = { 0 };
+
+						parsedPacket.attentionLevel = buffer[parsingIndex + 1];
+
+						sprintf(bufStr, "A:%d;M:%d,C:%d", parsedPacket.attentionLevel, parsedPacket.meditationLevel, attentionCount++);
+
+						LCD_SetPos(0, 1);
+						LCD_String(bufStr);
 
 						necomimi_queue_enque(&parsedPacket);
 					}
