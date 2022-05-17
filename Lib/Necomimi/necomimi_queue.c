@@ -8,7 +8,7 @@
 #include "necomimi_queue.h"
 #include "cmsis_os.h"
 
-#define NECOMIMI_MUTEX_WAIT_TIME_MS 1000
+#define NECOMIMI_MUTEX_WAIT_TIME_MS osWaitForever
 
 osMutexDef(necomimiQueueMutex);
 osMutexId necomimiQueueMutexId;
@@ -21,7 +21,7 @@ static uint32_t necomimiQueueEndIndex;
 
 static NecomimiPacketUnit necomimiQueue[NECOMIMI_QUEUE_SIZE];
 
-static isNecomimiQueueInitialized = false;
+static bool isNecomimiQueueInitialized = false;
 
 bool necomimi_queue_init()
 {
@@ -95,7 +95,7 @@ bool necomimi_queue_deque(NecomimiPacketUnit *outputNecomimiPacket)
 				}
 				else
 				{
-					necomimiQueueBeginIndex == NECOMIMI_QUEUE_SIZE - 1;
+					necomimiQueueBeginIndex = NECOMIMI_QUEUE_SIZE - 1;
 				}
 
 				osMutexRelease(necomimiQueueMutexId);

@@ -41,6 +41,8 @@ static uint32_t _parsingBytesCount = 0;
 static uint8_t _buffer[NECOMIMI_BUFFER_SIZE];
 static int _parse_packet(uint8_t *buffer, uint32_t size);
 
+static NecomimiPacketUnit packetToQueue;
+
 static int _parse_necomimi_header(uint8_t *buffer, uint32_t beginIndex, uint32_t bufSize)
 {
 	int parsingIndex = beginIndex;
@@ -146,6 +148,7 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 
 				if (isCrcOk)
 				{
+					memset(&packetToQueue, 0, sizeof(NecomimiPacketUnit));
 					NecomimiPacketUnit parsedPacket = { 0 };
 					bool isThereAttentionOrMediationPacks = false;
 					while (parsingIndex < crcIndex)
@@ -155,9 +158,10 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 						{
 							case (ATTENTION):
 								{
-
 //									newParsedNecomimiPacket.AttentionCount = attentionCount;
 //									newParsedNecomimiPacket.ESenseAttention = buffer[parsingIndex + 1];
+
+									packetToQueue.attentionLevel = buffer[parsingIndex + 1];
 									parsingIndex += 2;
 
 									isThereAttentionOrMediationPacks = true;
@@ -169,7 +173,7 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 //									char bufStr[25] = { 0 };
 
 //									sprintf(bufStr, "MEDITATION:%d %d ", buffer[parsingIndex + 1], meditationCount++);
-									parsedPacket.meditationLevel = buffer[parsingIndex + 1];
+									packetToQueue.meditationLevel = buffer[parsingIndex + 1];
 //									LCD_Clear();
 //									LCD_SetPos(0, 1);
 //									LCD_String(bufStr);
@@ -261,12 +265,12 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 
 						parsedPacket.attentionLevel = buffer[parsingIndex + 1];
 
-						sprintf(bufStr, "A:%d;M:%d,C:%d", parsedPacket.attentionLevel, parsedPacket.meditationLevel, attentionCount++);
+						sprintf(bufStr, "A:%d;M:%d,C:%d", packetToQueue.attentionLevel, packetToQueue.meditationLevel, attentionCount++);
 
 						LCD_SetPos(0, 1);
 						LCD_String(bufStr);
 
-						necomimi_queue_enque(&parsedPacket);
+						necomimi_queue_enque(&packetToQueue);
 					}
 				}
 			}
