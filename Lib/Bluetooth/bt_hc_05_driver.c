@@ -53,6 +53,10 @@ uint8_t btBuffer[BT_HC_05_RX_BUF_SIZE] = { 0 };
 #define BT_MAC_ADDR_UAP_STRING_SIZE 2
 #define BT_MAC_ADDR_LAP_STRING_SIZE 6
 
+#define BT_FIND_BY_ADDRESS 1
+#define BT_SON_ADDRESS_KNOWN "98D3:32:312290"
+#define BT_SON_ADDRESS_KNOWN_FOR_INQ "98D3,32,312290"
+
 
 
 volatile char btSonAddressStringForAtBind[BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE] = { 0 };
@@ -81,6 +85,7 @@ static bool parse_son_address_in_at_inq_response(const uint8_t *hc05AnswerData, 
 	//	#define BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE 15
 	//	char btSonAddressStringForAtBind[BT_SON_ADRESS_FOR_AT_BIND_STRING_SIZE] = { 0 };
 
+	// 98D3:32:312290,1F00,FF9C
 	uint8_t *ptrToAnswerData = hc05AnswerData;
 
 	if(answerSize > AT_INQ_RESPONSE_HEADER_SIZE + AT_INQ_RESPONSE_BT_MAC_ADDR_SIZE )
@@ -92,6 +97,8 @@ static bool parse_son_address_in_at_inq_response(const uint8_t *hc05AnswerData, 
 			if(ptrToAnswerData[AT_INQ_RESPONSE_BT_ADDR_FIRST_COLON_OFFSET] == ':' &&
 					ptrToAnswerData[AT_INQ_RESPONSE_BT_ADDR_SECOND_COLON_OFFSET] == ':')
 			{
+#if BT_FIND_BY_ADDRESS
+#else
 				char *ptrToCopyingAddr = btSonAddressStringForAtBind;
 				memcpy((uint8_t*)ptrToCopyingAddr, ptrToAnswerData + AT_INQ_RESPONSE_HEADER_SIZE, BT_MAC_ADDR_NAP_STRING_SIZE);
 				ptrToCopyingAddr += BT_MAC_ADDR_NAP_STRING_SIZE;
@@ -106,7 +113,7 @@ static bool parse_son_address_in_at_inq_response(const uint8_t *hc05AnswerData, 
 				memcpy(ptrToCopyingAddr,
 										ptrToAnswerData + AT_INQ_RESPONSE_BT_ADDR_SECOND_COLON_OFFSET + 1,
 										BT_MAC_ADDR_LAP_STRING_SIZE);
-
+#endif
 				// Ноль символ в btSonAddressStringForAtBind можно не заполнять, он уже там.
 				return true;
 			}
@@ -140,11 +147,21 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		{
 			necomimi_parse_packet(btHc05Uart.rxBuf, Size);
 		}
+#if BT_FIND_BY_ADDRESS
+		else if (strstr(btHc05Uart.rxBuf, BT_SON_ADDRESS_KNOWN))
+		{
+			//  705E,55,BF0F46
+			memcpy(btSonAddressStringForAtBind, BT_SON_ADDRESS_KNOWN_FOR_INQ, AT_INQ_RESPONSE_BT_MAC_ADDR_SIZE);
+			sonFound = true;
+			needToActivateDma = false;
+		}
+#else
 		else if (strstr(btHc05Uart.rxBuf, WAVE_CHILD_DEVICE_NAME))
 		{
 			sonFound = parse_son_address_in_at_inq_response(btHc05Uart.rxBuf, Size);
 			needToActivateDma = !sonFound;
 		}
+#endif
 
 		if(needToActivateDma)
 		{
@@ -231,6 +248,7 @@ void bt_hc_05_bind_to_father()
 	uint32_t commandLen = strlen(atBindCommand);
 
 	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+CMODE=0\r\n", 12, 1000);
+	HAL_Delay(400);
 	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)atBindCommand, commandLen, 1000);
 }
 void bt_hc_05_read_data()
@@ -296,13 +314,14 @@ bool bt_hc_05_start_scan()
 	//AT+INQM=1,10,77\r\n
 
 	HAL_StatusTypeDef transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+ROLE=1\r\n", strlen("AT+ROLE=1\r\n"), 300);
-	HAL_UART_Receive(btHc05Uart.uartHandler, bufForSyncReplies, 20, 200);
+	HAL_Delay(4000);
 
 	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+RMAAD\r\n", strlen("AT+RMAAD\r\n"), 300);
-	HAL_UART_Receive(btHc05Uart.uartHandler, bufForSyncReplies, 20, 200);
+	HAL_Delay(4000);
 
 	transRes = HAL_UART_Transmit(btHc05Uart.uartHandler, (uint8_t*)"AT+INQM=1,8,48\r\n", 16, 300);
 	HAL_UART_Receive(btHc05Uart.uartHandler, bufForSyncReplies, 20, 4000);
+	HAL_Delay(600);
 
 	transRes = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
 	__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
