@@ -66,9 +66,17 @@ UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_rx;
 
 osThreadId defaultTaskHandle;
+uint32_t defaultTaskBuffer[ 1024 ];
+osStaticThreadDef_t defaultTaskControlBlock;
 osThreadId ledTaskHandle;
+uint32_t ledTaskBuffer[ 1024 ];
+osStaticThreadDef_t ledTaskControlBlock;
 osThreadId audioTaskHandle;
+uint32_t audioTaskBuffer[ 1024 ];
+osStaticThreadDef_t audioTaskControlBlock;
 osThreadId menuTaskHandle;
+uint32_t menuTaskBuffer[ 1024 ];
+osStaticThreadDef_t menuTaskControlBlock;
 /* USER CODE BEGIN PV */
 extern volatile int menuState;
 extern volatile int menuDown;
@@ -298,19 +306,19 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  osThreadStaticDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 1024, defaultTaskBuffer, &defaultTaskControlBlock);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of ledTask */
-  osThreadDef(ledTask, StartLedTask, osPriorityBelowNormal, 0, 256);
+  osThreadStaticDef(ledTask, StartLedTask, osPriorityBelowNormal, 0, 1024, ledTaskBuffer, &ledTaskControlBlock);
   ledTaskHandle = osThreadCreate(osThread(ledTask), NULL);
 
   /* definition and creation of audioTask */
-  osThreadDef(audioTask, StartAudioTask, osPriorityBelowNormal, 0, 512);
+  osThreadStaticDef(audioTask, StartAudioTask, osPriorityBelowNormal, 0, 1024, audioTaskBuffer, &audioTaskControlBlock);
   audioTaskHandle = osThreadCreate(osThread(audioTask), NULL);
 
   /* definition and creation of menuTask */
-  osThreadDef(menuTask, StartMenuTask, osPriorityBelowNormal, 0, 256);
+  osThreadStaticDef(menuTask, StartMenuTask, osPriorityBelowNormal, 0, 1024, menuTaskBuffer, &menuTaskControlBlock);
   menuTaskHandle = osThreadCreate(osThread(menuTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

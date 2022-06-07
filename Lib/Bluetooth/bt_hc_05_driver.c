@@ -335,6 +335,11 @@ void bt_hc_05_activate_read()
 {
 	HAL_StatusTypeDef transRes = HAL_UARTEx_ReceiveToIdle_DMA(btHc05Uart.uartHandler, btHc05Uart.rxBuf, BT_HC_05_RX_BUF_SIZE);
 	__HAL_DMA_DISABLE_IT(btHc05Uart.dmaUartRx, DMA_IT_HT);
+
+	uint8_t bufForSyncReplies[32] = { 0 };
+	HAL_UART_Receive(btHc05Uart.uartHandler, bufForSyncReplies, 20, 4000);
+
+	return;
 }
 
 void bt_hc_05_send_string(char *message)
