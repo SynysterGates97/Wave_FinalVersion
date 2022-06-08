@@ -263,7 +263,7 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 
 						char bufStr[25] = { 0 };
 
-						parsedPacket.attentionLevel = buffer[parsingIndex + 1];
+//						parsedPacket.attentionLevel = buffer[parsingIndex + 1];
 
 						sprintf(bufStr, "A:%d;M:%d,C:%d", packetToQueue.attentionLevel, packetToQueue.meditationLevel, attentionCount++);
 
