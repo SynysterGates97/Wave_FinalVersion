@@ -14,6 +14,7 @@ typedef struct
 {
 	uint8_t meditationLevel;
 	uint8_t attentionLevel;
+	uint32_t packetNumber;
 }NecomimiPacketUnit;
 
 #endif /* NECOMIMI_NECOMIMI_PACKET_H_ */

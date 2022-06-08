@@ -47,7 +47,10 @@ bool necomimi_queue_enque(NecomimiPacketUnit *necomimiPacket)
 		osStatus waitResult = osMutexWait(necomimiQueueMutexId, NECOMIMI_MUTEX_WAIT_TIME_MS);
 		if(waitResult == osOK)
 		{
+			static uint32_t packetsEnquedCount = 0;
 			necomimiQueue[necomimiQueueEndIndex] = *necomimiPacket;
+
+			necomimiQueue[necomimiQueueEndIndex].packetNumber = packetsEnquedCount++;
 			necomimiQueueEndIndex++;
 
 			necomimiQueueElementsInQueue++;

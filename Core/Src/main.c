@@ -838,6 +838,13 @@ void fire_simulator_do_one_time_slot(uint16_t slotIndex)
 	GREEN = slotIndex*0.15;
 	BLUE = slotIndex * 0;
 }
+
+uint8_t calc_alpha_wave(NecomimiPacketUnit const * const necomimiPacket)
+{
+	uint8_t crc8 = necomimiPacket->attentionLevel ^ necomimiPacket->meditationLevel;
+
+	return crc8;
+}
 /* USER CODE END Header_StartLedTask */
 void StartLedTask(void const * argument)
 {
@@ -861,6 +868,16 @@ void StartLedTask(void const * argument)
 	  uint32_t delayMs = 500;
 	  if(necomimi_queue_deque(&necomimiPacket))
 	  {
+			static char bufferToUart2[100];
+
+			uint8_t alphaWaveCrc = calc_alpha_wave(&necomimiPacket);
+			sprintf(bufferToUart2, "$$CRC8=%d;A=%d;M=%d;#%d;$$\r\n", alphaWaveCrc,
+				  necomimiPacket.attentionLevel,
+				  necomimiPacket.meditationLevel,
+				  necomimiPacket.packetNumber);
+
+			HAL_UART_Transmit(&huart2, bufferToUart2, strlen(bufferToUart2), 100);
+
 			static uint32_t clearLcdCounter = 0;
 			if(clearLcdCounter % 10 == 0)
 			{
@@ -875,29 +892,7 @@ void StartLedTask(void const * argument)
 			LCD_SetPos(0, 0);
 			LCD_String(bufferToLcd);
 	  }
-	  if (necomimi_get_elements_count() > 10)
-	  {
-		  delayMs = 500;
-	  }
-//	  if(usb_ok)
-//	  {
-//
-//		  if(HAL_GetTick() - filterUpdTimeMs > 400)
-//		  {
-//			  rndWritingValue = HAL_RNG_GetRandomNumber(&hrng);
-//			  filterUpdTimeMs = HAL_GetTick();
-//		  }
-//
-//		  if(HAL_GetTick() - writeFireTimeMs > 100)
-//		  {
-//			  writingValue = writingValue * (1 - koefficient) + (float)rndWritingValue * koefficient;
-//			  writeFireTimeMs = HAL_GetTick();
-//
-//			  fire_simulator_do_one_time_slot(writingValue);
-//
-//
-//		  }
-//	  }
+
 	  osDelay(delayMs);
   }
   /* USER CODE END StartLedTask */
