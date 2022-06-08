@@ -259,9 +259,9 @@ static int _parse_packet(uint8_t *buffer, uint32_t size)
 					}
 					if(isThereAttentionOrMediationPacks)
 					{
-						static attentionCount = 0;
+						static uint32_t attentionCount = 0;
 
-						char bufStr[25] = { 0 };
+						static char bufStr[40] = { 0 };
 
 //						parsedPacket.attentionLevel = buffer[parsingIndex + 1];
 

@@ -92,13 +92,22 @@ bool necomimi_queue_deque(NecomimiPacketUnit *outputNecomimiPacket)
 				*outputNecomimiPacket = necomimiQueue[necomimiQueueBeginIndex];
 				necomimiQueueElementsInQueue--;
 
-				if(necomimiQueueBeginIndex > 0)
+				if(necomimiQueueBeginIndex < NECOMIMI_QUEUE_SIZE - 1)
 				{
-					necomimiQueueBeginIndex--;
+					necomimiQueueBeginIndex++;
 				}
 				else
 				{
-					necomimiQueueBeginIndex = NECOMIMI_QUEUE_SIZE - 1;
+					necomimiQueueBeginIndex = 0;
+				}
+
+				if(necomimiQueueBeginIndex == necomimiQueueEndIndex)
+				{
+					necomimiQueueEndIndex++;
+					if (necomimiQueueEndIndex > NECOMIMI_QUEUE_SIZE - 1)
+					{
+						necomimiQueueEndIndex = 0;
+					}
 				}
 
 				osMutexRelease(necomimiQueueMutexId);
