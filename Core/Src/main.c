@@ -839,7 +839,7 @@ void fire_simulator_do_one_time_slot(uint16_t slotIndex)
 	BLUE = slotIndex * 0;
 }
 
-uint8_t calc_alpha_wave(NecomimiPacketUnit const * const necomimiPacket)
+uint8_t calc_alpha_wave_crc8(NecomimiPacketUnit const * const necomimiPacket)
 {
 	uint8_t crc8 = necomimiPacket->attentionLevel ^ necomimiPacket->meditationLevel;
 
@@ -870,7 +870,7 @@ void StartLedTask(void const * argument)
 	  {
 			static char bufferToUart2[100];
 
-			uint8_t alphaWaveCrc = calc_alpha_wave(&necomimiPacket);
+			uint8_t alphaWaveCrc = calc_alpha_wave_crc8(&necomimiPacket);
 			sprintf(bufferToUart2, "$$CRC8=%d;A=%d;M=%d;#%d;$$\r\n", alphaWaveCrc,
 				  necomimiPacket.attentionLevel,
 				  necomimiPacket.meditationLevel,
